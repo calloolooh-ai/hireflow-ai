@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  Legend,
 } from "recharts"
 import { Loader2, TrendingUp } from "lucide-react"
 
@@ -40,6 +41,7 @@ const TOOLTIP_STYLE = {
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/analytics")
@@ -48,6 +50,7 @@ export default function AnalyticsPage() {
         setData(d)
         setLoading(false)
       })
+      .catch(() => { setError("Failed to load analytics. Please try again."); setLoading(false) })
   }, [])
 
   if (loading) {
@@ -61,13 +64,24 @@ export default function AnalyticsPage() {
     )
   }
 
+  if (error) {
+    return (
+      <div>
+        <Navbar title="Analytics" />
+        <div className="p-6">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!data) return null
 
   const topStatCards = [
-    { label: "Active Jobs", value: data.activeJobs, change: "+12%" },
-    { label: "Total Candidates", value: data.totalCandidates, change: "+8%" },
-    { label: "Evaluations", value: data.evaluationsCompleted, change: "+24%" },
-    { label: "Hires Recommended", value: data.hiresRecommended, change: "+5%" },
+    { label: "Active Jobs", value: data.activeJobs },
+    { label: "Total Candidates", value: data.totalCandidates },
+    { label: "Evaluations", value: data.evaluationsCompleted },
+    { label: "Hires Recommended", value: data.hiresRecommended },
   ]
 
   return (
@@ -76,14 +90,13 @@ export default function AnalyticsPage() {
       <div className="p-6 space-y-6">
         {/* KPI row */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {topStatCards.map(({ label, value, change }) => (
+          {topStatCards.map(({ label, value }) => (
             <div
               key={label}
               className="bg-[#111827] border border-[#1e293b] rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-slate-500 font-medium">{label}</span>
-                <span className="text-xs text-emerald-400 font-medium">{change}</span>
               </div>
               <div className="text-2xl font-bold text-white">{value}</div>
             </div>
@@ -167,6 +180,9 @@ export default function AnalyticsPage() {
                     axisLine={false}
                   />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend
+                    wrapperStyle={{ fontSize: "11px", color: "#94a3b8", paddingTop: "8px" }}
+                  />
                   <Bar dataKey="technical" fill="#8b5cf6" radius={[3, 3, 0, 0]} name="Technical" />
                   <Bar dataKey="culture" fill="#10b981" radius={[3, 3, 0, 0]} name="Culture" />
                   <Bar dataKey="composite" fill="#3b82f6" radius={[3, 3, 0, 0]} name="Composite" />

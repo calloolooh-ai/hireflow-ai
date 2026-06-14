@@ -24,7 +24,7 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-10 h-14 flex items-center justify-between px-6 bg-[#0f172a]/80 backdrop-blur-sm border-b border-[#1e293b]">
-      <div>
+      <div className="pl-8 md:pl-0">
         <h1 className="text-sm font-semibold text-white">{title}</h1>
         {subtitle && (
           <p className="text-xs text-slate-500">{subtitle}</p>

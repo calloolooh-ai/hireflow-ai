@@ -10,8 +10,12 @@ export async function POST(request: Request) {
     await ensureInit()
     const { name, email, password } = await request.json()
 
-    if (!name || !email || !password) {
+    const trimmedName = name?.trim()
+    if (!trimmedName || !email || !password) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 })
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 })
     }
     if (password.length < 8) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 })

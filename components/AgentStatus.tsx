@@ -53,7 +53,17 @@ interface Props {
 }
 
 export default function AgentStatus({ completedAgents, activeAgent }: Props) {
+  const progress = Math.round((completedAgents.length / AGENTS.length) * 100)
   return (
+    <div className="space-y-2">
+    {completedAgents.length > 0 && (
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1 bg-[#1e293b] rounded-full overflow-hidden">
+          <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="text-[10px] text-slate-500 shrink-0">{progress}%</span>
+      </div>
+    )}
     <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
       {AGENTS.map((agent, i) => {
         const isDone = completedAgents.includes(agent.type)
@@ -90,6 +100,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
           </div>
         )
       })}
+    </div>
     </div>
   )
 }

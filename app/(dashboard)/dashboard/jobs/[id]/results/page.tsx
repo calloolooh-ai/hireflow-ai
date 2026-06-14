@@ -79,6 +79,7 @@ export default function ResultsPage() {
   const [tab, setTab] = useState<Tab>("overview")
   const [data, setData] = useState<ResultsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null)
   const [bandThread, setBandThread] = useState<string | null>(null)
 
@@ -89,6 +90,7 @@ export default function ResultsPage() {
         setData(d)
         setLoading(false)
       })
+      .catch((err) => { console.error("results fetch error:", err); setError("Failed to load results."); setLoading(false) })
   }, [id])
 
   const handleApprove = async (
@@ -116,6 +118,17 @@ export default function ResultsPage() {
     )
   }
 
+  if (error) {
+    return (
+      <div>
+        <Navbar title="Results" />
+        <div className="p-6">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!data) return null
 
   const { job, candidates, bandMessages, auditLogs } = data
@@ -129,7 +142,10 @@ export default function ResultsPage() {
     const tech = c.evaluations.find((e) => e.agentType === "technical_evaluator")
     const culture = c.evaluations.find((e) => e.agentType === "culture_evaluator")
     const comp = c.evaluations.find((e) => e.agentType === "compensation_agent")
-    const compOut = comp ? JSON.parse(comp.output) : null
+    let compOut: Record<string, unknown> | null = null
+    if (comp?.output) {
+      try { compOut = JSON.parse(comp.output) } catch { compOut = null }
+    }
     return {
       id: c.id,
       name: c.name,
@@ -137,8 +153,8 @@ export default function ResultsPage() {
       technicalScore: tech?.score ?? null,
       cultureScore: culture?.score ?? null,
       compositeScore: c.decision?.compositeScore ?? null,
-      minSalary: compOut?.minSalary ?? null,
-      maxSalary: compOut?.maxSalary ?? null,
+      minSalary: typeof compOut?.minSalary === "number" ? compOut.minSalary : null,
+      maxSalary: typeof compOut?.maxSalary === "number" ? compOut.maxSalary : null,
       decision: c.decision?.decision ?? null,
       confidence: c.decision?.confidence ?? null,
       status: c.status,

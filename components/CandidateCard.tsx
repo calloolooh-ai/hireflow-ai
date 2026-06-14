@@ -97,10 +97,11 @@ export default function CandidateCard({
   const compEval = evaluations.find((e) => e.agentType === "compensation_agent")
   const resumeEval = evaluations.find((e) => e.agentType === "resume_analyst")
 
-  const techOutput = techEval ? JSON.parse(techEval.output) : null
-  const cultureOutput = cultureEval ? JSON.parse(cultureEval.output) : null
-  const compOutput = compEval ? JSON.parse(compEval.output) : null
-  const resumeOutput = resumeEval ? JSON.parse(resumeEval.output) : null
+  const safeParse = (s: string | undefined | null) => { try { return s ? JSON.parse(s) : null } catch { return null } }
+  const techOutput = techEval ? safeParse(techEval.output) : null
+  const cultureOutput = cultureEval ? safeParse(cultureEval.output) : null
+  const compOutput = compEval ? safeParse(compEval.output) : null
+  const resumeOutput = resumeEval ? safeParse(resumeEval.output) : null
 
   const decisionStyle = decision ? DECISION_COLORS[decision.decision] : null
   const DecisionIcon = decisionStyle?.icon
@@ -243,13 +244,7 @@ export default function CandidateCard({
                 </span>
               </div>
               <pre className="text-[10px] text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap break-words leading-relaxed">
-                {JSON.stringify(
-                  JSON.parse(
-                    evaluations.find((e) => e.agentType === activeEval)?.output || "{}"
-                  ),
-                  null,
-                  2
-                )}
+                {JSON.stringify(safeParse(evaluations.find((e) => e.agentType === activeEval)?.output) ?? {}, null, 2)}
               </pre>
             </div>
           )}

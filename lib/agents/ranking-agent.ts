@@ -43,10 +43,14 @@ function getMockOutput(
   const techScore = tech?.score ?? 7.5
   const cultureScore = culture?.score ?? 7.5
 
-  const techWeight = 0.55
-  const cultureWeight = 0.45
-  const composite =
-    techScore * techWeight + cultureScore * cultureWeight
+  const debateMode = Math.abs(techScore - cultureScore) >= 2.0
+  const debateReason = debateMode
+    ? `Conflict detected: tech score (${techScore.toFixed(1)}) vs culture score (${cultureScore.toFixed(1)}) — agents debating resolution...`
+    : null
+
+  const techWeight = debateMode ? 0.6 : 0.55
+  const cultureWeight = debateMode ? 0.4 : 0.45
+  const composite = techScore * techWeight + cultureScore * cultureWeight
 
   let decision: "HIRE" | "HOLD" | "REJECT"
   if (composite >= 8.0) decision = "HIRE"
@@ -57,6 +61,10 @@ function getMockOutput(
     ? `$${(comp.minSalary / 1000).toFixed(0)}K–$${(comp.maxSalary / 1000).toFixed(0)}K`
     : "market rate"
 
+  const debateStr = debateMode
+    ? ` ${debateReason} Resolved score: ${composite.toFixed(1)}/10.`
+    : ""
+
   return {
     compositeScore: parseFloat(composite.toFixed(1)),
     decision,
@@ -64,7 +72,7 @@ function getMockOutput(
       tech?.strengths?.[0] || "strong skills"
     }. Culture Evaluator scored ${cultureScore.toFixed(1)}/10 citing ${
       culture?.rationale?.slice(0, 80) || "good collaborative indicators"
-    }. Compensation estimate of ${compStr} is within budget. ${
+    }. Compensation estimate of ${compStr} is within budget.${debateStr} ${
       decision === "HIRE"
         ? "All signals point to a strong hire."
         : decision === "HOLD"
@@ -75,6 +83,7 @@ function getMockOutput(
     technicalWeight: techWeight,
     cultureWeight: cultureWeight,
     highlights: [
+      ...(debateMode ? [`⚡ Debate Mode: ${debateReason}`] : []),
       tech?.strengths?.[0] || "Strong technical background",
       `Composite score ${composite.toFixed(1)}/10`,
       `Culture fit: ${cultureScore.toFixed(1)}/10`,
@@ -114,7 +123,11 @@ export async function runRankingAgent(
   const decisionEmoji =
     output.decision === "HIRE" ? "✅" : output.decision === "HOLD" ? "⏸️" : "❌"
 
-  const messageContent = `**FINAL HIRING RECOMMENDATION: ${decisionEmoji} ${output.decision}**
+  const debateBlock = (output.highlights?.[0] as string | undefined)?.startsWith("⚡ Debate Mode")
+    ? `\n**⚡ Debate Mode Triggered**\n${output.highlights[0].replace("⚡ Debate Mode: ", "")}\n`
+    : ""
+
+  const messageContent = `${debateBlock}**FINAL HIRING RECOMMENDATION: ${decisionEmoji} ${output.decision}**
 **Candidate:** ${ctx.candidate.name}
 **Composite Score:** ${output.compositeScore}/10 (Confidence: ${(output.confidence * 100).toFixed(0)}%)
 

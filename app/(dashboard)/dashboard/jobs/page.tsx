@@ -38,6 +38,7 @@ export default function JobsPage() {
         setJobs(data.jobs || [])
         setLoading(false)
       })
+      .catch((err) => { console.error("jobs fetch error:", err); setLoading(false) })
   }, [])
 
   const filtered = jobs.filter(
@@ -47,6 +48,7 @@ export default function JobsPage() {
   )
 
   const archiveJob = async (id: string) => {
+    if (!window.confirm("Archive this job? It will be hidden from active listings.")) return
     await fetch(`/api/jobs/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

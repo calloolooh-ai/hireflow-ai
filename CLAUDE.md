@@ -234,7 +234,7 @@ Never simulate Band as a simple notification feed. Band should appear as the cen
 
 **AI Provider:**
 - Featherless AI
-- Default Model: `meta-llama/Llama-3.3-70B-Instruct`
+- Default Model: `deepseek-ai/DeepSeek-V3.1`
 
 ---
 

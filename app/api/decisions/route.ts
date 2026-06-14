@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
-import { decisions, auditLogs, candidates } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { decisions, auditLogs, candidates, jobs } from "@/lib/db/schema"
+import { eq, and, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
 
 export async function PATCH(request: Request) {
@@ -18,6 +18,14 @@ export async function PATCH(request: Request) {
   }
 
   await ensureInit()
+
+  const candidateRows = await db
+    .select({ candidate: candidates })
+    .from(candidates)
+    .innerJoin(jobs, and(eq(jobs.id, candidates.jobId), eq(jobs.userId, session.user.id)))
+    .where(eq(candidates.id, candidateId))
+    .limit(1)
+  if (!candidateRows[0]) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   await db
     .update(decisions)
@@ -61,6 +69,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ decision: rows[0] })
   }
 
-  const allDecisions = await db.select().from(decisions)
+  const userJobs = await db.select({ id: jobs.id }).from(jobs).where(eq(jobs.userId, session.user.id))
+  if (userJobs.length === 0) return NextResponse.json({ decisions: [] })
+  const jobIds = userJobs.map((j) => j.id)
+  const allDecisions = await db.select().from(decisions).where(inArray(decisions.jobId, jobIds))
   return NextResponse.json({ decisions: allDecisions })
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
 import { jobs, candidates, evaluations, decisions } from "@/lib/db/schema"
-import { eq, desc, count } from "drizzle-orm"
+import { eq, desc, count, inArray } from "drizzle-orm"
 
 export async function GET() {
   const session = await auth()
@@ -11,25 +11,33 @@ export async function GET() {
   await ensureInit()
   const userId = session.user.id
 
+  const userJobs = await db.select({ id: jobs.id }).from(jobs).where(eq(jobs.userId, userId))
+  const userJobIds = userJobs.map((j) => j.id)
+
+  const userCandidateIds = userJobIds.length > 0
+    ? (await db.select({ id: candidates.id }).from(candidates).where(inArray(candidates.jobId, userJobIds))).map((c) => c.id)
+    : []
+
   const [{ count: activeJobs }] = await db
     .select({ count: count() })
     .from(jobs)
-    .where(eq(jobs.status, "active"))
+    .where(eq(jobs.userId, userId))
 
-  const [{ count: totalCandidates }] = await db
-    .select({ count: count() })
-    .from(candidates)
+  const [{ count: totalCandidates }] = userJobIds.length > 0
+    ? await db.select({ count: count() }).from(candidates).where(inArray(candidates.jobId, userJobIds))
+    : [{ count: 0 }]
 
-  const [{ count: evaluationsCompleted }] = await db
-    .select({ count: count() })
-    .from(evaluations)
+  const [{ count: evaluationsCompleted }] = userCandidateIds.length > 0
+    ? await db.select({ count: count() }).from(evaluations).where(inArray(evaluations.candidateId, userCandidateIds))
+    : [{ count: 0 }]
 
-  const [{ count: hiresRecommended }] = await db
-    .select({ count: count() })
-    .from(decisions)
-    .where(eq(decisions.decision, "HIRE"))
+  const [{ count: hiresRecommended }] = userCandidateIds.length > 0
+    ? await db.select({ count: count() }).from(decisions).where(inArray(decisions.candidateId, userCandidateIds))
+    : [{ count: 0 }]
 
-  const allDecisions = await db.select().from(decisions)
+  const allDecisions = userCandidateIds.length > 0
+    ? await db.select().from(decisions).where(inArray(decisions.candidateId, userCandidateIds))
+    : []
   const hireCount = allDecisions.filter((d) => d.decision === "HIRE").length
   const holdCount = allDecisions.filter((d) => d.decision === "HOLD").length
   const rejectCount = allDecisions.filter((d) => d.decision === "REJECT").length
@@ -74,13 +82,12 @@ export async function GET() {
     })
   )
 
-  const allResumeEvals = await db
-    .select()
-    .from(evaluations)
-    .where(eq(evaluations.agentType, "resume_analyst"))
+  const allEvals = userCandidateIds.length > 0
+    ? await db.select().from(evaluations).where(inArray(evaluations.candidateId, userCandidateIds))
+    : []
 
   const skillCounts: Record<string, number> = {}
-  for (const evalRow of allResumeEvals) {
+  for (const evalRow of allEvals.filter((e) => e.agentType === "resume_analyst")) {
     try {
       const output = JSON.parse(evalRow.output)
       for (const skill of output.skills || []) {
@@ -102,7 +109,7 @@ export async function GET() {
     const nextD = new Date(d)
     nextD.setDate(nextD.getDate() + 1)
 
-    const dayEvals = allResumeEvals.filter((e) => {
+    const dayEvals = allEvals.filter((e) => {
       const t =
         e.createdAt instanceof Date
           ? e.createdAt.getTime()

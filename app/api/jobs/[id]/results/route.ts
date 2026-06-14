@@ -17,6 +17,7 @@ export async function GET(
   const jobRows = await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1)
   if (!jobRows[0]) return NextResponse.json({ error: "Not found" }, { status: 404 })
   const job = jobRows[0]
+  if (job.userId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const candidateList = await db
     .select()

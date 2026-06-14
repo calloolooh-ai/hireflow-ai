@@ -21,6 +21,8 @@ import {
   Building2,
   ChevronRight,
   Cpu,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react"
 import type { EvalEvent, AgentType } from "@/lib/types"
 
@@ -52,6 +54,7 @@ const STATUS_COLORS: Record<string, string> = {
   hired: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   rejected: "text-red-400 bg-red-500/10 border-red-500/20",
   hold: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+  failed: "text-red-400 bg-red-500/10 border-red-500/20",
 }
 
 export default function JobDetailPage() {
@@ -64,6 +67,7 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true)
   const [showAddCandidate, setShowAddCandidate] = useState(false)
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null)
+  const [evaluatingAll, setEvaluatingAll] = useState(false)
   const [evalEvents, setEvalEvents] = useState<EvalEvent[]>([])
   const [completedAgents, setCompletedAgents] = useState<AgentType[]>([])
   const [activeAgent, setActiveAgent] = useState<AgentType | null>(null)
@@ -101,12 +105,25 @@ export default function JobDetailPage() {
     }
   }
 
+  function parseCSVLine(line: string): string[] {
+    const result: string[] = []
+    let current = ""
+    let inQuotes = false
+    for (const ch of line) {
+      if (ch === '"') { inQuotes = !inQuotes }
+      else if (ch === "," && !inQuotes) { result.push(current.trim()); current = "" }
+      else { current += ch }
+    }
+    result.push(current.trim())
+    return result
+  }
+
   const handleCsvUpload = async () => {
     if (!csvFile) return
     const text = await csvFile.text()
     const lines = text.trim().split("\n").slice(1)
     for (const line of lines) {
-      const parts = line.split(",").map((p) => p.trim().replace(/^"|"$/g, ""))
+      const parts = parseCSVLine(line)
       if (parts.length >= 2 && parts[0] && parts[1]) {
         const res = await fetch("/api/candidates", {
           method: "POST",
@@ -126,6 +143,16 @@ export default function JobDetailPage() {
       }
     }
     setCsvFile(null)
+  }
+
+  const evaluateAllPending = async () => {
+    const pending = candidates.filter((c) => c.status === "pending")
+    if (pending.length === 0) return
+    setEvaluatingAll(true)
+    for (const c of pending) {
+      await runEvaluation(c.id)
+    }
+    setEvaluatingAll(false)
   }
 
   const runEvaluation = async (candidateId: string) => {
@@ -205,6 +232,17 @@ export default function JobDetailPage() {
     )
   }
 
+  const archiveJob = async () => {
+    if (!window.confirm("Archive this job? It will be hidden from active listings.")) return
+    await fetch(`/api/jobs/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "archived" }) })
+    setJob((j) => j ? { ...j, status: "archived" } : j)
+  }
+
+  const unarchiveJob = async () => {
+    await fetch(`/api/jobs/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) })
+    setJob((j) => j ? { ...j, status: "active" } : j)
+  }
+
   const isEvaluating = !!evaluatingId
 
   return (
@@ -269,6 +307,23 @@ export default function JobDetailPage() {
                 <UserPlus className="w-3.5 h-3.5" />
                 Add Candidate
               </button>
+              {job.status === "archived" ? (
+                <button
+                  onClick={unarchiveJob}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-lg transition-colors"
+                >
+                  <ArchiveRestore className="w-3.5 h-3.5" />
+                  Unarchive
+                </button>
+              ) : (
+                <button
+                  onClick={archiveJob}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-lg transition-colors"
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  Archive
+                </button>
+              )}
             </div>
           </div>
 
@@ -415,13 +470,25 @@ export default function JobDetailPage() {
                   Candidates ({candidates.length})
                 </h3>
               </div>
-              <button
-                onClick={() => setShowAddCandidate(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-md transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                Add
-              </button>
+              <div className="flex items-center gap-2">
+                {candidates.some((c) => c.status === "pending") && (
+                  <button
+                    onClick={evaluateAllPending}
+                    disabled={isEvaluating || evaluatingAll}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {evaluatingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                    Evaluate All
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowAddCandidate(true)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-md transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add
+                </button>
+              </div>
             </div>
 
             <div className="divide-y divide-[#1e293b]">
