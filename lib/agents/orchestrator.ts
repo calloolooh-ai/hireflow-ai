@@ -85,7 +85,13 @@ export async function runEvaluation(
   }
 
   // ── Step 2: Create candidate thread in Band ──────────────────────────────
+  // A thread ID starting with "thread-" was created in mock mode and is not a
+  // real Band chat ID. If we're now in live mode, replace it with a real one.
   let bandThreadId = candidate.bandThreadId
+  const isMockThreadId = !bandThreadId || bandThreadId.startsWith("thread-")
+  if (isMockThreadId && band.bandMode === "live") {
+    bandThreadId = null
+  }
   if (!bandThreadId) {
     const thread = await band.createThread(bandRoomId, `Evaluation: ${candidate.name}`)
     bandThreadId = thread.id

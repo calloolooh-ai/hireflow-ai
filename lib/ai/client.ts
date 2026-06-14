@@ -1,6 +1,6 @@
 import OpenAI from "openai"
 
-export const AI_MODEL = process.env.AI_MODEL || "meta-llama/Llama-3.3-70B-Instruct"
+export const AI_MODEL = process.env.AI_MODEL || "deepseek-ai/DeepSeek-V3.1"
 export const isDemoMode = !process.env.FEATHERLESS_API_KEY || process.env.FEATHERLESS_API_KEY === ""
 
 let _client: OpenAI | null = null

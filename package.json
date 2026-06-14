@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "npx tsx scripts/seed.ts",
+    "band:create": "npx tsx scripts/create-band-agents.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
