@@ -232,7 +232,7 @@ export async function runEvaluation(
         if (
           typeof techScore === "number" &&
           typeof cultureScore === "number" &&
-          Math.abs(techScore - cultureScore) >= 2.0
+          Math.abs(techScore - cultureScore) >= 1.5
         ) {
           const conflictMessage = `⚡ CONFLICT DETECTED: Technical score (${techScore.toFixed(
             1

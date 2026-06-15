@@ -92,6 +92,7 @@ export default function DashboardPage() {
 
   const handleLoadDemo = async () => {
     if (seeding) return
+    if (hasJobs && !confirm("Reset demo? This will add fresh demo jobs and candidates.")) return
     setSeeding(true)
     try {
       const res = await fetch("/api/seed-demo", { method: "POST" })
@@ -196,7 +197,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="shrink-0 flex items-center gap-2">
-              {!loading && !hasJobs && (
+              {!loading && (
                 <button
                   onClick={handleLoadDemo}
                   disabled={seeding}
@@ -207,7 +208,7 @@ export default function DashboardPage() {
                   ) : (
                     <Database className="w-3.5 h-3.5" />
                   )}
-                  {seeding ? "Loading..." : "Load Demo Data"}
+                  {seeding ? "Loading..." : hasJobs ? "Reset Demo" : "Load Demo Data"}
                 </button>
               )}
               <Link

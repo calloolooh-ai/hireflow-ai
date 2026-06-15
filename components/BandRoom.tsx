@@ -213,22 +213,16 @@ interface Props {
   messages: BandMsg[]
   roomId?: string
   threadTitle?: string
+  bandMode?: "live" | "mock"
+  jobId?: string
 }
 
-export default function BandRoom({ messages, roomId, threadTitle }: Props) {
+export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobId }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
-
-  if (messages.length === 0) {
-    return (
-      <div className="text-center py-10 text-sm text-slate-500">
-        No Band messages yet. Run an evaluation to see agent collaboration here.
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-3">
-      {/* Room header */}
+      {/* Room header — always shown */}
       <div className="flex items-center gap-2 px-4 py-3 bg-[#0f172a] rounded-lg border border-[#1e293b]">
         <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
         <div className="flex-1 min-w-0">
@@ -241,10 +235,37 @@ export default function BandRoom({ messages, roomId, threadTitle }: Props) {
             </div>
           )}
         </div>
-        <span className="text-[10px] text-slate-600 font-medium">
-          {messages.length} messages
+        <span className="text-[10px] text-slate-600 font-medium mr-2">
+          {messages.length} message{messages.length !== 1 ? "s" : ""}
         </span>
+        {bandMode === "live" ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-semibold text-emerald-400">Live Band</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            <span className="text-[10px] font-semibold text-indigo-400">Simulated</span>
+          </div>
+        )}
       </div>
+
+      {messages.length === 0 && (
+        <div className="text-center py-12 space-y-3">
+          <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
+          <p className="text-sm font-medium text-slate-400">No agent messages yet</p>
+          <p className="text-xs text-slate-600">Run an evaluation on the job page to see agents collaborate here in real time.</p>
+          {jobId && (
+            <a
+              href={`/dashboard/jobs/${jobId}`}
+              className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors mt-1"
+            >
+              ← Run evaluation
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Messages */}
       {messages.map((msg, i) => {

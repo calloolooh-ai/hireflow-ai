@@ -43,7 +43,7 @@ function getMockOutput(
   const techScore = tech?.score ?? 7.5
   const cultureScore = culture?.score ?? 7.5
 
-  const debateMode = Math.abs(techScore - cultureScore) >= 2.0
+  const debateMode = Math.abs(techScore - cultureScore) >= 1.5
   const debateReason = debateMode
     ? `Conflict detected: tech score (${techScore.toFixed(1)}) vs culture score (${cultureScore.toFixed(1)}) — agents debating resolution...`
     : null
@@ -123,15 +123,29 @@ export async function runRankingAgent(
   const decisionEmoji =
     output.decision === "HIRE" ? "✅" : output.decision === "HOLD" ? "⏸️" : "❌"
 
-  const debateBlock = (output.highlights?.[0] as string | undefined)?.startsWith("⚡ Debate Mode")
-    ? `\n**⚡ Debate Mode Triggered**\n${output.highlights[0].replace("⚡ Debate Mode: ", "")}\n`
+  const techScore = techOutput?.score
+  const cultureScore = cultureOutput?.score
+  const hasConflict =
+    typeof techScore === "number" &&
+    typeof cultureScore === "number" &&
+    Math.abs(techScore - cultureScore) >= 1.5
+
+  const conflictBlock = hasConflict
+    ? `\n**⚡ CONFLICT DETECTED — I am mediating.**\nTechnical Evaluator scored ${techScore!.toFixed(1)} but Culture Evaluator scored ${cultureScore!.toFixed(1)} — a ${Math.abs(techScore! - cultureScore!).toFixed(1)}-point gap requiring resolution before a final decision can be made.\n`
     : ""
 
-  const messageContent = `${debateBlock}**FINAL HIRING RECOMMENDATION: ${decisionEmoji} ${output.decision}**
+  const agentSummary = [
+    "Resume Analyst",
+    techScore !== undefined ? `Technical Evaluator (score: ${techScore.toFixed(1)})` : "Technical Evaluator",
+    cultureScore !== undefined ? `Culture Evaluator (score: ${cultureScore.toFixed(1)})` : "Culture Evaluator",
+    "Compensation Agent",
+  ].join(", ")
+
+  const messageContent = `**FINAL HIRING RECOMMENDATION: ${decisionEmoji} ${output.decision}**
 **Candidate:** ${ctx.candidate.name}
 **Composite Score:** ${output.compositeScore}/10 (Confidence: ${(output.confidence * 100).toFixed(0)}%)
 
-*Synthesized findings from ${messages.length} agent messages in this Band thread.*
+I have reviewed all ${messages.length} Band messages from ${agentSummary}.${conflictBlock}
 
 **Scoring Weights:** Technical ${(output.technicalWeight * 100).toFixed(0)}% | Culture ${(output.cultureWeight * 100).toFixed(0)}%
 

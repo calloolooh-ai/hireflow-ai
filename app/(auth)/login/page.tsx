@@ -1,17 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Loader2, LogIn } from "lucide-react"
+import { Loader2, LogIn, Play } from "lucide-react"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const searchParams = useSearchParams()
+  const isDemo = searchParams.get("demo") === "1"
+  const [email, setEmail] = useState(isDemo ? "demo@hireflow.ai" : "")
+  const [password, setPassword] = useState(isDemo ? "demo1234" : "")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isDemo) {
+      handleDemo()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,6 +67,13 @@ export default function LoginPage() {
       <p className="text-slate-400 text-sm mb-6">
         Welcome back to HireFlow AI
       </p>
+
+      {isDemo && (
+        <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-2">
+          <Play className="w-4 h-4 shrink-0" />
+          Demo mode — credentials pre-filled. Signing you in…
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -125,5 +141,17 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-8 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

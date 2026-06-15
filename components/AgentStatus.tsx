@@ -15,6 +15,7 @@ import type { AgentType } from "@/lib/types"
 const AGENTS: Array<{
   type: AgentType
   label: string
+  shortLabel: string
   color: string
   bg: string
   border: string
@@ -23,6 +24,7 @@ const AGENTS: Array<{
   {
     type: "resume_analyst",
     label: "Resume Analyst",
+    shortLabel: "Resume",
     color: "text-blue-400",
     bg: "bg-blue-500/10",
     border: "border-blue-500/30",
@@ -31,6 +33,7 @@ const AGENTS: Array<{
   {
     type: "technical_evaluator",
     label: "Technical Evaluator",
+    shortLabel: "Tech",
     color: "text-purple-400",
     bg: "bg-purple-500/10",
     border: "border-purple-500/30",
@@ -39,6 +42,7 @@ const AGENTS: Array<{
   {
     type: "culture_evaluator",
     label: "Culture Evaluator",
+    shortLabel: "Culture",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/30",
@@ -47,6 +51,7 @@ const AGENTS: Array<{
   {
     type: "compensation_agent",
     label: "Compensation Agent",
+    shortLabel: "Comp",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
     border: "border-amber-500/30",
@@ -55,6 +60,7 @@ const AGENTS: Array<{
   {
     type: "ranking_agent",
     label: "Ranking Agent",
+    shortLabel: "Rank",
     color: "text-orange-400",
     bg: "bg-orange-500/10",
     border: "border-orange-500/30",
@@ -104,7 +110,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
                 <Clock className="w-3.5 h-3.5 shrink-0" />
               )}
               <span className="hidden sm:block">{agent.label}</span>
-              <span className="sm:hidden">{agent.label.split(" ")[0]}</span>
+              <span className="sm:hidden">{agent.shortLabel}</span>
             </div>
 
             {i < AGENTS.length - 1 && (

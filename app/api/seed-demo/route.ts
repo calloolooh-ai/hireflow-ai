@@ -44,7 +44,7 @@ export async function POST() {
       email: "diego.ramirez@example.com",
       linkedinUrl: "https://linkedin.com/in/diego-ramirez-dev",
       resumeText:
-        "Full-stack developer with 5 years of experience primarily on frontend-heavy products. Built and shipped several customer-facing dashboards and component libraries in React, Vue, and GraphQL. Growing backend skills in Node.js and exploring cloud infrastructure on GCP. Prefers working solo and asynchronously — found team collaboration challenging at previous startup. Limited experience with system design or production incident response.",
+        "Full-stack developer with 5 years of experience primarily on frontend-heavy products. Expert-level JavaScript/TypeScript — built complex real-time WebSocket systems, automated CI/CD pipelines on GCP, and shipped multiple high-performance React dashboards and component libraries. Deep GraphQL expertise and growing Node.js backend skills. However, explicitly avoids meetings and cross-functional communication. Self-describes as 'not a team player' and strongly prefers zero collaboration or pair programming. Has been noted in past performance reviews for communication breakdowns with PMs and designers. Struggled severely in collaborative settings at two previous companies, leading to early departure from one role. No experience with production incident response or on-call rotations.",
     },
     {
       name: "Priya Nair",

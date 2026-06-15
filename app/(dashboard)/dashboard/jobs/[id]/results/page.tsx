@@ -84,12 +84,15 @@ export default function ResultsPage() {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null)
   const [bandThread, setBandThread] = useState<string | null>(null)
   const [approveError, setApproveError] = useState<string | null>(null)
+  const [bandMode, setBandMode] = useState<"live" | "mock">("mock")
 
   useEffect(() => {
-    fetch(`/api/jobs/${id}/results`)
-      .then((r) => r.json())
-      .then((d) => {
-        setData(d)
+    Promise.all([
+      fetch(`/api/jobs/${id}/results`).then((r) => r.json()),
+      fetch("/api/config").then((r) => r.json()).catch(() => ({ bandMode: "mock" })),
+    ]).then(([resultsData, configData]) => {
+        setData(resultsData)
+        setBandMode(configData.bandMode === "live" ? "live" : "mock")
         setLoading(false)
       })
       .catch((err) => { console.error("results fetch error:", err); setError("Failed to load results."); setLoading(false) })
@@ -360,6 +363,8 @@ export default function ResultsPage() {
                       ? `Evaluation: ${threadCandidateMap.get(bandThread) || bandThread}`
                       : undefined
                   }
+                  bandMode={bandMode}
+                  jobId={id}
                 />
               </div>
             )}

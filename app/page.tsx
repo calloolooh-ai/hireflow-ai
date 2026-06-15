@@ -9,6 +9,9 @@ import {
   Users,
   ShieldCheck,
   ScrollText,
+  Play,
+  Zap,
+  Clock,
 } from "lucide-react"
 
 const PIPELINE = [
@@ -78,7 +81,14 @@ export default function LandingPage() {
           HireFlow AI transforms hiring into a transparent multi-agent collaboration
           — powered by Band.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/login?demo=1"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold text-white transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            Try Demo — No signup needed
+          </Link>
           <Link
             href="/signup"
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white transition-colors"
@@ -119,6 +129,119 @@ export default function LandingPage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Debate mockup */}
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="text-center mb-6">
+          <div className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-2">
+            Live Band Collaboration Thread
+          </div>
+          <p className="text-sm text-slate-400">
+            This is what it looks like when agents debate a candidate in real time
+          </p>
+        </div>
+        <div className="space-y-3 max-w-2xl mx-auto">
+          {/* Message 1 — Resume Analyst */}
+          <div className="rounded-xl border p-4 bg-blue-500/10 border-blue-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                  <FileText className="w-3 h-3 text-blue-400" />
+                </div>
+                <span className="text-xs font-semibold text-blue-400">Resume Analyst</span>
+                <span className="text-[10px] text-slate-600 px-1.5 py-0.5 bg-[#0f172a] rounded border border-[#1e293b]">Agent</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                <Clock className="w-3 h-3" />2:14 PM
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">I have analyzed Diego Ramirez&apos;s resume. Extracting 5 years full-stack experience, strong React/TypeScript skills, GCP proficiency. Notable concern: candidate explicitly describes preference for solo work. <span className="text-blue-400 font-medium">Summary: Strong technical foundation, culture fit unclear.</span></p>
+          </div>
+          {/* Connector */}
+          <div className="flex flex-col items-center py-0.5">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] text-indigo-400 font-semibold">
+              <ArrowRight className="w-2.5 h-2.5" />via Band
+            </div>
+          </div>
+          {/* Message 2 — Technical Evaluator */}
+          <div className="rounded-xl border p-4 bg-purple-500/10 border-purple-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                  <Code2 className="w-3 h-3 text-purple-400" />
+                </div>
+                <span className="text-xs font-semibold text-purple-400">Technical Evaluator</span>
+                <span className="text-[10px] text-slate-600 px-1.5 py-0.5 bg-[#0f172a] rounded border border-[#1e293b]">Agent</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                <Clock className="w-3 h-3" />2:15 PM
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">I have reviewed Resume Analyst&apos;s findings from this Band thread (1 message read). React, TypeScript, GCP: all confirmed strong. System design gaps noted but compensated by delivery track record. <span className="text-purple-400 font-medium">My technical recommendation: HIRE with score 8.4.</span></p>
+          </div>
+          {/* Connector */}
+          <div className="flex flex-col items-center py-0.5">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] text-indigo-400 font-semibold">
+              <ArrowRight className="w-2.5 h-2.5" />via Band
+            </div>
+          </div>
+          {/* Message 3 — Culture Evaluator */}
+          <div className="rounded-xl border p-4 bg-emerald-500/10 border-emerald-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <Heart className="w-3 h-3 text-emerald-400" />
+                </div>
+                <span className="text-xs font-semibold text-emerald-400">Culture Evaluator</span>
+                <span className="text-[10px] text-slate-600 px-1.5 py-0.5 bg-[#0f172a] rounded border border-[#1e293b]">Agent</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                <Clock className="w-3 h-3" />2:16 PM
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">I&apos;ve read Resume Analyst&apos;s profile and Technical Evaluator&apos;s assessment (score 8.4) from this Band thread (2 messages read). ⚠️ I must note my assessment diverges from Technical Evaluator&apos;s — candidate self-reports as &apos;not a team player&apos; with documented collaboration failures. <span className="text-emerald-400 font-medium">Culture score: 5.1. Recommendation: HOLD.</span></p>
+          </div>
+          {/* Conflict banner */}
+          <div className="rounded-lg bg-gradient-to-r from-red-500/20 to-emerald-500/20 border border-amber-500/30 px-4 py-3">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-1.5">
+              <Zap className="w-3.5 h-3.5" />
+              ⚡ CONFLICT DETECTED — Ranking Agent mediating
+            </div>
+            <div className="flex items-center gap-6 text-[11px]">
+              <span className="text-purple-400 font-semibold">Technical Evaluator: 8.4</span>
+              <span className="text-slate-600">vs</span>
+              <span className="text-emerald-400 font-semibold">Culture Evaluator: 5.1</span>
+            </div>
+          </div>
+          {/* Connector */}
+          <div className="flex flex-col items-center py-0.5">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] text-indigo-400 font-semibold">
+              <ArrowRight className="w-2.5 h-2.5" />via Band
+            </div>
+          </div>
+          {/* Message 5 — Ranking Agent */}
+          <div className="rounded-xl border p-4 bg-orange-500/10 border-orange-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                  <Trophy className="w-3 h-3 text-orange-400" />
+                </div>
+                <span className="text-xs font-semibold text-orange-400">Ranking Agent</span>
+                <span className="text-[10px] text-slate-600 px-1.5 py-0.5 bg-[#0f172a] rounded border border-[#1e293b]">Agent</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                <Clock className="w-3 h-3" />2:17 PM
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">I have reviewed all 4 Band messages from Resume Analyst, Technical Evaluator (score 8.4), Culture Evaluator (score 5.1), and Compensation Agent. <span className="text-amber-400 font-medium">CONFLICT: Technical scored 8.4 but Culture scored 5.1 — a 3.3-point gap requiring mediation.</span> Technical strength is real. Culture concerns are documented. <span className="text-orange-400 font-bold">Decision: HOLD</span> — structured interview focused on collaboration scenarios recommended before advancing. Composite score: 6.8.</p>
+          </div>
+          <div className="text-center pt-2">
+            <Link href="/login?demo=1" className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors font-medium">
+              See this live in the app <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
       </section>

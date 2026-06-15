@@ -85,10 +85,15 @@ export async function runTechnicalEvaluator(
     output = extractJSON<TechnicalOutput>(raw)
   }
 
+  const resumeSummary = resumeFindings
+    ? `${resumeFindings.yearsExperience} years experience, skills: ${resumeFindings.skills.slice(0, 4).join(", ")}`
+    : "resume data from Band"
+
   // Post evaluation back to Band for downstream agents
+  const recommendation = output.score >= 8 ? "HIRE" : output.score >= 6.5 ? "HOLD" : "REJECT"
   const messageContent = `**Technical Evaluation for ${ctx.candidate.name}**
 
-*Read ${messages.length} message(s) from Band thread before evaluating.*
+I have reviewed Resume Analyst's findings from this Band thread (${messages.length} message(s) read). Based on their extraction — ${resumeSummary} — I am now assessing technical fit for ${ctx.job.title}.
 
 **Technical Score: ${output.score.toFixed(1)}/10**
 
@@ -102,7 +107,9 @@ ${output.gaps.length ? output.gaps.map((g) => `• ${g}`).join("\n") : "• No s
 
 **Job Keyword Matches:** ${output.keywordMatches.join(", ")}
 
-*Technical Evaluator complete. Culture Evaluator should now read this thread.*`
+**My technical recommendation: ${recommendation} with score ${output.score.toFixed(1)}.**
+
+*Culture Evaluator: please read this thread before posting your assessment.*`
 
   await band.postMessage(
     ctx.bandRoomId,

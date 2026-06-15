@@ -91,9 +91,20 @@ export async function runCultureEvaluator(
     output = extractJSON<CultureOutput>(raw)
   }
 
+  const techMessage = messages.find((m) => m.agentType === "technical_evaluator")
+  const techScore = (techMessage?.metadata?.output as { score?: number } | undefined)?.score
+  const techRef = techScore !== undefined
+    ? `Technical Evaluator's assessment (score ${techScore.toFixed(1)})`
+    : "Technical Evaluator's assessment"
+
+  const divergenceNote =
+    techScore !== undefined && Math.abs(output.score - techScore) >= 1.5
+      ? `\n⚠️ I must note my assessment diverges from ${techRef} — my culture score of ${output.score.toFixed(1)} differs by ${Math.abs(output.score - techScore).toFixed(1)} points. ${output.score < techScore ? "While technical skills are present, collaboration and communication signals raise significant concerns." : "Cultural indicators are stronger than technical signals suggest."}`
+      : ""
+
   const messageContent = `**Culture Evaluation for ${ctx.candidate.name}**
 
-*Read ${messages.length} message(s) from Band thread. Considered both resume signals and prior agent findings.*
+I've read Resume Analyst's profile and ${techRef} from this Band thread (${messages.length} message(s) read). I am now evaluating culture fit independently.${divergenceNote}
 
 **Culture Score: ${output.score.toFixed(1)}/10**
 
@@ -106,7 +117,7 @@ export async function runCultureEvaluator(
 
 **Assessment:** ${output.rationale}
 
-*Culture Evaluator complete. Compensation Agent has sufficient context to proceed.*`
+*Compensation Agent and Ranking Agent: please read the full thread before proceeding.*`
 
   await band.postMessage(
     ctx.bandRoomId,
