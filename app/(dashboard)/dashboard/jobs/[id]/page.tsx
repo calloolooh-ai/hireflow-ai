@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import ActivityFeed from "@/components/ActivityFeed"
@@ -25,6 +25,7 @@ import {
   ArchiveRestore,
   Pencil,
   Check,
+  ExternalLink,
 } from "lucide-react"
 import type { EvalEvent, AgentType } from "@/lib/types"
 
@@ -49,6 +50,12 @@ interface Candidate {
   bandThreadId: string | null
 }
 
+interface CandidateScores {
+  techScore?: number
+  cultureScore?: number
+  compositeScore?: number
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: "text-slate-400 bg-slate-500/10 border-slate-500/20",
   evaluating: "text-blue-400 bg-blue-500/10 border-blue-500/20",
@@ -59,6 +66,8 @@ const STATUS_COLORS: Record<string, string> = {
   failed: "text-red-400 bg-red-500/10 border-red-500/20",
 }
 
+const EVALUATED_STATUSES = new Set(["complete", "hired", "rejected", "hold", "failed"])
+
 export default function JobDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
@@ -67,12 +76,14 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [loading, setLoading] = useState(true)
+  const [bandMode, setBandMode] = useState<string>("mock")
   const [showAddCandidate, setShowAddCandidate] = useState(false)
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null)
   const [evaluatingAll, setEvaluatingAll] = useState(false)
   const [evalEvents, setEvalEvents] = useState<EvalEvent[]>([])
   const [completedAgents, setCompletedAgents] = useState<AgentType[]>([])
   const [activeAgent, setActiveAgent] = useState<AgentType | null>(null)
+  const [candidateScores, setCandidateScores] = useState<Record<string, CandidateScores>>({})
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [form, setForm] = useState({
     name: "",
@@ -88,13 +99,15 @@ export default function JobDetailPage() {
     Promise.all([
       fetch(`/api/jobs/${id}`).then((r) => r.json()),
       fetch(`/api/candidates?jobId=${id}`).then((r) => r.json()),
-    ]).then(([jobData, candidateData]) => {
+      fetch("/api/config").then((r) => r.json()),
+    ]).then(([jobData, candidateData, configData]) => {
       setJob(jobData.job)
       if (jobData.job) {
         const j = jobData.job
         setEditForm({ title: j.title, department: j.department, level: j.level, location: j.location, description: j.description })
       }
       setCandidates(candidateData.candidates || [])
+      setBandMode(configData.bandMode ?? "mock")
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [id])
@@ -209,6 +222,17 @@ export default function JobDetailPage() {
             if (event.type === "complete") {
               setActiveAgent(null)
               setEvaluatingId(null)
+              // Store scores for this candidate
+              if (event.score !== undefined || event.techScore !== undefined || event.cultureScore !== undefined) {
+                setCandidateScores((prev) => ({
+                  ...prev,
+                  [candidateId]: {
+                    compositeScore: event.score,
+                    techScore: event.techScore,
+                    cultureScore: event.cultureScore,
+                  },
+                }))
+              }
               // Refresh candidates
               fetch(`/api/candidates?jobId=${id}`)
                 .then((r) => r.json())
@@ -222,26 +246,6 @@ export default function JobDetailPage() {
     }
 
     setEvaluatingId(null)
-  }
-
-  if (loading) {
-    return (
-      <div>
-        <Navbar title="Job Detail" />
-        <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-        </div>
-      </div>
-    )
-  }
-
-  if (!job) {
-    return (
-      <div>
-        <Navbar title="Not Found" />
-        <div className="p-6 text-slate-400">Job not found.</div>
-      </div>
-    )
   }
 
   const archiveJob = async () => {
@@ -270,13 +274,65 @@ export default function JobDetailPage() {
     setEditSaving(false)
   }
 
-  const hasEvaluated = candidates.some((c) => c.status !== "pending" && c.status !== "evaluating")
+  if (loading) {
+    return (
+      <div>
+        <Navbar title="Job Detail" />
+        <div className="p-4 sm:p-6 space-y-5">
+          {/* Job card skeleton */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 animate-pulse">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-xl bg-[#1e293b]" />
+              <div className="flex-1 space-y-2">
+                <div className="h-5 bg-[#1e293b] rounded w-48" />
+                <div className="h-3 bg-[#1e293b] rounded w-72" />
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-[#1e293b] space-y-2">
+              <div className="h-3 bg-[#1e293b] rounded w-full" />
+              <div className="h-3 bg-[#1e293b] rounded w-4/5" />
+            </div>
+          </div>
+          {/* Candidate skeleton rows */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
+            <div className="px-5 py-4 border-b border-[#1e293b]">
+              <div className="h-4 bg-[#1e293b] rounded w-32 animate-pulse" />
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between animate-pulse">
+                <div className="space-y-1.5">
+                  <div className="h-4 bg-[#1e293b] rounded w-36" />
+                  <div className="h-3 bg-[#1e293b] rounded w-48" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 bg-[#1e293b] rounded w-16" />
+                  <div className="h-6 bg-[#1e293b] rounded w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!job) {
+    return (
+      <div>
+        <Navbar title="Not Found" />
+        <div className="p-6 text-slate-400">Job not found.</div>
+      </div>
+    )
+  }
+
+  const hasEvaluated = candidates.some((c) => EVALUATED_STATUSES.has(c.status))
   const isEvaluating = !!evaluatingId
 
   return (
     <div>
       <Navbar title={job.title} subtitle={`${job.department} · ${job.level}`} />
-      <div className="p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-5">
+        {/* Breadcrumb */}
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/jobs"
@@ -289,15 +345,24 @@ export default function JobDetailPage() {
           <span className="text-sm text-slate-300">{job.title}</span>
         </div>
 
-        {/* Job header */}
+        {/* Job Info Card — full width */}
         <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                 <Briefcase className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">{job.title}</h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg font-semibold text-white">{job.title}</h2>
+                  <span className={`px-2 py-0.5 rounded border text-xs font-medium capitalize ${
+                    job.status === "archived"
+                      ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                  }`}>
+                    {job.status}
+                  </span>
+                </div>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
                   <div className="flex items-center gap-1.5 text-xs text-slate-400">
                     <Building2 className="w-3.5 h-3.5 text-slate-500" />
@@ -311,16 +376,32 @@ export default function JobDetailPage() {
                     {job.level}
                   </span>
                   {job.bandRoomId && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded border text-xs font-medium text-indigo-400 bg-indigo-500/10 border-indigo-500/20">
-                      <Cpu className="w-3 h-3" />
-                      Band: {job.bandRoomId.slice(0, 20)}...
-                    </span>
+                    bandMode === "live" ? (
+                      <a
+                        href="https://app.band.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-medium text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <Cpu className="w-3 h-3" />
+                        {job.bandRoomId}
+                        <ExternalLink className="w-3 h-3 opacity-70" />
+                      </a>
+                    ) : (
+                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-medium text-slate-400 bg-slate-500/10 border-slate-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                        <Cpu className="w-3 h-3" />
+                        {job.bandRoomId}
+                      </span>
+                    )
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               {hasEvaluated && (
                 <Link
                   href={`/dashboard/jobs/${id}/results`}
@@ -336,13 +417,6 @@ export default function JobDetailPage() {
               >
                 <Pencil className="w-3.5 h-3.5" />
                 Edit
-              </button>
-              <button
-                onClick={() => setShowAddCandidate(true)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-lg transition-colors"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                Add Candidate
               </button>
               {job.status === "archived" ? (
                 <button
@@ -435,7 +509,6 @@ export default function JobDetailPage() {
 
               <div className="p-6 space-y-4">
                 {csvFile ? (
-                  /* ── CSV selected state: hide manual form, show import UI ── */
                   <div className="space-y-4">
                     <div className="p-4 rounded-lg bg-[#0f172a] border border-blue-500/30 flex items-center gap-3">
                       <Upload className="w-4 h-4 text-blue-400 shrink-0" />
@@ -468,7 +541,6 @@ export default function JobDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  /* ── Default state: CSV browse + manual form ── */
                   <>
                     <label className="flex items-center gap-3 p-3 rounded-lg bg-[#0f172a] border border-dashed border-[#334155] hover:border-[#475569] cursor-pointer transition-colors">
                       <Upload className="w-4 h-4 text-slate-500" />
@@ -565,130 +637,139 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        {/* Candidates + Evaluation */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {/* Candidates */}
-          <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
-            <div className="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">
-                  Candidates ({candidates.length})
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                {candidates.some((c) => c.status === "pending") && (
-                  <button
-                    onClick={evaluateAllPending}
-                    disabled={isEvaluating || evaluatingAll}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {evaluatingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                    Evaluate All
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowAddCandidate(true)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-md transition-colors"
-                >
-                  <Plus className="w-3 h-3" />
-                  Add
-                </button>
-              </div>
+        {/* Candidates section — full width */}
+        <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
+          <div className="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-slate-400" />
+              <h3 className="text-sm font-semibold text-white">
+                Candidates ({candidates.length})
+              </h3>
             </div>
-
-            <div className="divide-y divide-[#1e293b]">
-              {candidates.length === 0 ? (
-                <div className="px-5 py-10 text-center">
-                  <Users className="w-8 h-8 text-slate-700 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500">No candidates yet</p>
-                  <button
-                    onClick={() => setShowAddCandidate(true)}
-                    className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-400 hover:text-blue-300 border border-blue-500/20 rounded-lg"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add first candidate
-                  </button>
-                </div>
-              ) : (
-                candidates.map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    className="px-5 py-3.5 flex items-center justify-between group hover:bg-[#1a2235] transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium text-white truncate">
-                        {candidate.name}
-                      </div>
-                      <div className="text-xs text-slate-500 truncate">
-                        {candidate.email}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span
-                        className={`px-2 py-0.5 rounded border text-xs font-medium ${
-                          STATUS_COLORS[candidate.status] ||
-                          "text-slate-400 bg-slate-500/10 border-slate-500/20"
-                        }`}
-                      >
-                        {candidate.status}
-                      </span>
-
-                      <button
-                        onClick={() => runEvaluation(candidate.id)}
-                        disabled={isEvaluating}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {evaluatingId === candidate.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Play className="w-3 h-3" />
-                        )}
-                        {evaluatingId === candidate.id ? "Running..." : "Evaluate"}
-                      </button>
-                    </div>
-                  </div>
-                ))
+            <div className="flex items-center gap-2">
+              {candidates.some((c) => c.status === "pending") && (
+                <button
+                  onClick={evaluateAllPending}
+                  disabled={isEvaluating || evaluatingAll}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {evaluatingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                  Evaluate All
+                </button>
               )}
+              <button
+                onClick={() => setShowAddCandidate(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-500 rounded-md transition-colors font-medium"
+              >
+                <Plus className="w-3 h-3" />
+                Add Candidate
+              </button>
             </div>
           </div>
 
-          {/* Live evaluation feed */}
-          <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
-            <div className="px-5 py-4 border-b border-[#1e293b]">
-              <div className="flex items-center gap-2 mb-3">
-                <Cpu className="w-4 h-4 text-blue-400" />
-                <h3 className="text-sm font-semibold text-white">
-                  Agent Collaboration Feed
-                </h3>
-                {isEvaluating && (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    Live
-                  </span>
-                )}
-              </div>
-              <AgentStatus
-                completedAgents={completedAgents}
-                activeAgent={activeAgent}
-              />
-            </div>
-
-            <div className="p-4">
-              <ActivityFeed events={evalEvents} isRunning={isEvaluating} />
-            </div>
-
-            {evalEvents.some((e) => e.type === "complete") && (
-              <div className="px-5 py-4 border-t border-[#1e293b]">
-                <Link
-                  href={`/dashboard/jobs/${id}/results`}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+          <div className="divide-y divide-[#1e293b]">
+            {candidates.length === 0 ? (
+              <div className="px-5 py-12 text-center">
+                <Users className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+                <p className="text-sm text-slate-400 font-medium mb-0.5">No candidates yet</p>
+                <p className="text-xs text-slate-600 mb-4">Add candidates to start evaluating</p>
+                <button
+                  onClick={() => setShowAddCandidate(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs text-blue-400 hover:text-blue-300 border border-blue-500/20 rounded-lg transition-colors"
                 >
-                  <BarChart3 className="w-4 h-4" />
-                  View Full Results
-                </Link>
+                  <Plus className="w-3.5 h-3.5" />
+                  Add first candidate
+                </button>
               </div>
+            ) : (
+              candidates.map((candidate) => {
+                const isThisEvaluating = evaluatingId === candidate.id
+                const isEvaluated = EVALUATED_STATUSES.has(candidate.status)
+                const showResults = ["complete", "hired", "rejected", "hold"].includes(candidate.status)
+                const scores = candidateScores[candidate.id]
+
+                return (
+                  <div key={candidate.id} className="group hover:bg-[#1a2235] transition-colors">
+                    {/* Candidate row */}
+                    <div className="px-5 py-4 flex flex-wrap items-center gap-3">
+                      {/* Name + email */}
+                      <div className="flex-1 min-w-0 min-w-[160px]">
+                        <div className="text-sm font-medium text-white truncate">{candidate.name}</div>
+                        <div className="text-xs text-slate-500 truncate">{candidate.email}</div>
+                      </div>
+
+                      {/* Status badge */}
+                      <span className={`px-2 py-0.5 rounded border text-xs font-medium shrink-0 ${
+                        STATUS_COLORS[candidate.status] || "text-slate-400 bg-slate-500/10 border-slate-500/20"
+                      }`}>
+                        {candidate.status}
+                      </span>
+
+                      {/* Score pills — shown when evaluated and scores available */}
+                      {isEvaluated && scores && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {scores.techScore !== undefined && (
+                            <span className="text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                              Tech {scores.techScore.toFixed(1)}
+                            </span>
+                          )}
+                          {scores.cultureScore !== undefined && (
+                            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                              Culture {scores.cultureScore.toFixed(1)}
+                            </span>
+                          )}
+                          {scores.compositeScore !== undefined && (
+                            <span className="text-xs font-semibold text-slate-200 bg-slate-500/10 border border-slate-500/20 px-2 py-0.5 rounded">
+                              Score {scores.compositeScore.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0 ml-auto">
+                        {/* Run Evaluation button — hide while this candidate is evaluating */}
+                        {!isThisEvaluating && (
+                          <button
+                            onClick={() => runEvaluation(candidate.id)}
+                            disabled={isEvaluating}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Play className="w-3 h-3" />
+                            {isEvaluated ? "Re-evaluate" : "Run Evaluation"}
+                          </button>
+                        )}
+                        {isThisEvaluating && (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-blue-400 border border-blue-500/30 rounded-md bg-blue-500/10">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Running...
+                          </span>
+                        )}
+                        {/* View Results link */}
+                        {showResults && (
+                          <Link
+                            href={`/dashboard/jobs/${id}/results`}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] border border-[#334155] rounded-md transition-colors"
+                          >
+                            View Results
+                            <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Inline evaluation feed — only for the actively evaluating candidate */}
+                    {isThisEvaluating && (
+                      <div className="px-5 pb-5">
+                        <div className="mt-1 pt-3 border-t border-[#1e293b] space-y-3">
+                          <AgentStatus completedAgents={completedAgents} activeAgent={activeAgent} />
+                          <ActivityFeed events={evalEvents} isRunning={true} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
             )}
           </div>
         </div>

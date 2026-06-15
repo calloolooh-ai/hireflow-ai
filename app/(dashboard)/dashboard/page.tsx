@@ -11,7 +11,6 @@ import {
   ArrowUpRight,
   Clock,
   Cpu,
-  Activity,
   Database,
   Loader2,
   Gavel,
@@ -27,7 +26,7 @@ interface Stats {
   hiresRecommended: number
 }
 
-interface Activity {
+interface AuditLog {
   id: string
   action: string
   entityType: string
@@ -54,40 +53,71 @@ interface PendingApproval {
   summary: CandidateSummary
 }
 
+function toAgentLabel(actorId: string | null): string {
+  if (!actorId) return "Agent"
+  return actorId
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
+function formatEvalAction(log: AuditLog): string {
+  if (log.actorType === "agent") {
+    const agent = toAgentLabel(log.actorId)
+    const action = log.action.replace(/_/g, " ")
+    return `${agent} · ${action}`
+  }
+  return log.action.replace(/_/g, " ")
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
 export default function DashboardPage() {
   const router = useRouter()
-  const [stats, setStats] = useState<Stats>({
-    activeJobs: 0,
-    totalCandidates: 0,
-    evaluationsCompleted: 0,
-    hiresRecommended: 0,
-  })
-  const [recentActivity, setRecentActivity] = useState<Activity[]>([])
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
+  const [recentActivity, setRecentActivity] = useState<AuditLog[]>([])
+  const [activityLoading, setActivityLoading] = useState(true)
   const [hasJobs, setHasJobs] = useState<boolean>(true)
   const [seeding, setSeeding] = useState(false)
   const [pending, setPending] = useState<PendingApproval[]>([])
+  const [pendingLoading, setPendingLoading] = useState(true)
   const [actioning, setActioning] = useState<string | null>(null)
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/analytics").then((r) => r.json()),
-      fetch("/api/audit?limit=8").then((r) => r.json()),
-      fetch("/api/jobs").then((r) => r.json()),
-      fetch("/api/decisions?pendingApproval=true").then((r) => r.json()),
-    ]).then(([analyticsData, auditData, jobsData, pendingData]) => {
-      setStats({
-        activeJobs: analyticsData.activeJobs ?? 0,
-        totalCandidates: analyticsData.totalCandidates ?? 0,
-        evaluationsCompleted: analyticsData.evaluationsCompleted ?? 0,
-        hiresRecommended: analyticsData.hiresRecommended ?? 0,
+    // Fetch each independently so cards light up as soon as their data arrives
+    fetch("/api/analytics")
+      .then((r) => r.json())
+      .then((d) => {
+        setStats({
+          activeJobs: d.activeJobs ?? 0,
+          totalCandidates: d.totalCandidates ?? 0,
+          evaluationsCompleted: d.evaluationsCompleted ?? 0,
+          hiresRecommended: d.hiresRecommended ?? 0,
+        })
       })
-      setRecentActivity(auditData.logs ?? [])
-      setHasJobs((jobsData.jobs ?? []).length > 0)
-      setPending(pendingData.pending ?? [])
-      setLoading(false)
-    }).catch(() => setLoading(false))
+      .catch(() => setStats({ activeJobs: 0, totalCandidates: 0, evaluationsCompleted: 0, hiresRecommended: 0 }))
+      .finally(() => setAnalyticsLoading(false))
+
+    fetch("/api/audit?limit=8")
+      .then((r) => r.json())
+      .then((d) => setRecentActivity(d.logs ?? []))
+      .catch(() => setRecentActivity([]))
+      .finally(() => setActivityLoading(false))
+
+    fetch("/api/jobs")
+      .then((r) => r.json())
+      .then((d) => setHasJobs((d.jobs ?? []).length > 0))
+      .catch(() => {})
+
+    fetch("/api/decisions?pendingApproval=true")
+      .then((r) => r.json())
+      .then((d) => setPending(d.pending ?? []))
+      .catch(() => setPending([]))
+      .finally(() => setPendingLoading(false))
   }, [])
 
   const handleLoadDemo = async () => {
@@ -132,7 +162,7 @@ export default function DashboardPage() {
   const statCards = [
     {
       label: "Active Jobs",
-      value: stats.activeJobs,
+      value: stats?.activeJobs ?? 0,
       icon: Briefcase,
       color: "text-blue-400",
       bg: "bg-blue-500/10",
@@ -140,7 +170,7 @@ export default function DashboardPage() {
     },
     {
       label: "Total Candidates",
-      value: stats.totalCandidates,
+      value: stats?.totalCandidates ?? 0,
       icon: Users,
       color: "text-purple-400",
       bg: "bg-purple-500/10",
@@ -148,33 +178,21 @@ export default function DashboardPage() {
     },
     {
       label: "Evaluations Done",
-      value: stats.evaluationsCompleted,
+      value: stats?.evaluationsCompleted ?? 0,
       icon: CheckCircle,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10",
-      href: "/dashboard/analytics",
+      href: "/dashboard/jobs",
     },
     {
       label: "Hires Recommended",
-      value: stats.hiresRecommended,
+      value: stats?.hiresRecommended ?? 0,
       icon: TrendingUp,
       color: "text-amber-400",
       bg: "bg-amber-500/10",
-      href: "/dashboard/analytics",
+      href: "/dashboard/jobs",
     },
   ]
-
-  const formatAction = (log: Activity) => {
-    const actor = log.actorType === "agent"
-      ? `Agent: ${log.actorId?.replace(/_/g, " ")}`
-      : "Human"
-    return `${actor} — ${log.action.replace(/_/g, " ")}`
-  }
-
-  const formatTime = (iso: string) => {
-    const d = new Date(iso)
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
 
   return (
     <div>
@@ -182,74 +200,35 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="HireFlow AI — Band-native hiring intelligence"
       />
-      <div className="p-6 space-y-6">
-        {/* Welcome banner */}
-        <div className="rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/10 border border-blue-500/20 p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-1">
-                Multi-Agent Hiring War Room
-              </h2>
-              <p className="text-sm text-slate-400 max-w-lg">
-                AI agents collaborate through Band to evaluate candidates — each
-                agent reads prior findings before posting its own analysis. Every
-                decision is transparent and auditable.
-              </p>
-            </div>
-            <div className="shrink-0 flex items-center gap-2">
-              {!loading && (
-                <button
-                  onClick={handleLoadDemo}
-                  disabled={seeding}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[#1e293b] hover:bg-[#334155] text-slate-200 text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
-                >
-                  {seeding ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Database className="w-3.5 h-3.5" />
-                  )}
-                  {seeding ? "Loading..." : hasJobs ? "Reset Demo" : "Load Demo Data"}
-                </button>
-              )}
-              <Link
-                href="/dashboard/jobs/new"
-                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                <Briefcase className="w-3.5 h-3.5" />
-                New Job
-              </Link>
-            </div>
-          </div>
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
-          {/* Agent flow preview */}
-          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
-            {[
-              { label: "Resume Analyst", color: "bg-blue-500/20 border-blue-500/30 text-blue-300" },
-              { label: "Technical Eval", color: "bg-purple-500/20 border-purple-500/30 text-purple-300" },
-              { label: "Culture Eval", color: "bg-emerald-500/20 border-emerald-500/30 text-emerald-300" },
-              { label: "Compensation", color: "bg-amber-500/20 border-amber-500/30 text-amber-300" },
-              { label: "Ranking Agent", color: "bg-orange-500/20 border-orange-500/30 text-orange-300" },
-            ].map((agent, i) => (
-              <div key={agent.label} className="flex items-center gap-2 shrink-0">
-                <div className={`px-3 py-1 rounded-md border text-xs font-medium ${agent.color}`}>
-                  {agent.label}
-                </div>
-                {i < 4 && (
-                  <div className="flex items-center gap-1">
-                    <div className="w-6 h-px bg-slate-600" />
-                    <div className="text-[10px] text-slate-500 bg-[#0f172a] px-1 py-0.5 rounded border border-[#1e293b]">
-                      Band
-                    </div>
-                    <div className="w-6 h-px bg-slate-600" />
-                    <ArrowUpRight className="w-3 h-3 text-slate-500 rotate-45" />
-                  </div>
-                )}
-              </div>
-            ))}
+        {/* Top action bar */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="text-base font-semibold text-white">Overview</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLoadDemo}
+              disabled={seeding || analyticsLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e293b] hover:bg-[#334155] text-slate-200 text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+            >
+              {seeding ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Database className="w-3.5 h-3.5" />
+              )}
+              {seeding ? "Loading..." : hasJobs ? "Reset Demo" : "Load Demo Data"}
+            </button>
+            <Link
+              href="/dashboard/jobs/new"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              New Job
+            </Link>
           </div>
         </div>
 
-        {/* Stats grid */}
+        {/* Stats grid — each card lights up independently */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {statCards.map(({ label, value, icon: Icon, color, bg, href }) => (
             <Link
@@ -259,13 +238,13 @@ export default function DashboardPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center`}>
-                  <Icon className={`w-4.5 h-4.5 ${color}`} />
+                  <Icon className={`w-4 h-4 ${color}`} />
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
               </div>
               <div className="text-2xl font-bold text-white mb-0.5">
-                {loading ? (
-                  <div className="h-7 w-8 bg-[#1e293b] rounded animate-pulse" />
+                {analyticsLoading ? (
+                  <div className="h-7 w-10 bg-[#1e293b] rounded animate-pulse" />
                 ) : (
                   value
                 )}
@@ -276,7 +255,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Awaiting Your Decision */}
-        {pending.length > 0 && (
+        {!pendingLoading && pending.length > 0 && (
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
             <div className="px-5 py-4 border-b border-[#1e293b] flex items-center gap-2">
               <Gavel className="w-4 h-4 text-amber-400" />
@@ -296,7 +275,6 @@ export default function DashboardPage() {
                 )
                 return (
                   <div key={p.candidateId} className="divide-y divide-[#1e293b]">
-                    {/* Card header row */}
                     <div className="px-5 py-4 flex items-center gap-4 flex-wrap">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{p.candidateName}</p>
@@ -317,7 +295,7 @@ export default function DashboardPage() {
                           {isExpanded ? (
                             <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
                           ) : (
-                            <><ChevronDown className="w-3.5 h-3.5" /> Quick View</>
+                            <><ChevronDown className="w-3.5 h-3.5" /> Details</>
                           )}
                         </button>
                       )}
@@ -346,10 +324,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Collapsible summary panel */}
                     {isExpanded && hasSummary && (
                       <div className="px-5 py-4 bg-[#0f172a]/60 space-y-4">
-                        {/* Scores row */}
                         {(p.summary.compositeScore != null || p.summary.technicalScore != null || p.summary.cultureScore != null) && (
                           <div className="flex items-center gap-4 flex-wrap">
                             {p.summary.compositeScore != null && (
@@ -372,8 +348,6 @@ export default function DashboardPage() {
                             )}
                           </div>
                         )}
-
-                        {/* Strengths + Weaknesses */}
                         {(p.summary.strengths.length > 0 || p.summary.weaknesses.length > 0) && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {p.summary.strengths.length > 0 && (
@@ -404,8 +378,6 @@ export default function DashboardPage() {
                             )}
                           </div>
                         )}
-
-                        {/* Ranking agent reasoning */}
                         {p.summary.rankingReasoning && (
                           <div>
                             <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider mb-1.5">Agent Reasoning</p>
@@ -421,23 +393,23 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Recent activity */}
+        {/* Recent Evaluations */}
         <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
           <div className="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-slate-400" />
-              <h3 className="text-sm font-semibold text-white">Recent Activity</h3>
+              <Cpu className="w-4 h-4 text-blue-400" />
+              <h3 className="text-sm font-semibold text-white">Recent Evaluations</h3>
             </div>
             <Link
-              href="/dashboard/analytics"
+              href="/dashboard/jobs"
               className="text-xs text-blue-400 hover:text-blue-300"
             >
-              View all
+              View Jobs →
             </Link>
           </div>
 
           <div className="divide-y divide-[#1e293b]">
-            {loading ? (
+            {activityLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="px-5 py-3.5 flex items-center gap-3">
                   <div className="w-6 h-6 bg-[#1e293b] rounded animate-pulse" />
@@ -449,15 +421,13 @@ export default function DashboardPage() {
               ))
             ) : recentActivity.length === 0 ? (
               <div className="px-5 py-8 text-center text-sm text-slate-500">
-                No activity yet. Create a job and run evaluations to see activity here.
+                No evaluations yet. Load demo data or create a job and run evaluations.
               </div>
             ) : (
               recentActivity.map((log) => (
                 <div key={log.id} className="px-5 py-3.5 flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                    log.actorType === "agent"
-                      ? "bg-blue-500/20"
-                      : "bg-emerald-500/20"
+                    log.actorType === "agent" ? "bg-blue-500/20" : "bg-emerald-500/20"
                   }`}>
                     {log.actorType === "agent" ? (
                       <Cpu className="w-3 h-3 text-blue-400" />
@@ -467,7 +437,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-300 truncate">
-                      {formatAction(log)}
+                      {formatEvalAction(log)}
                     </p>
                     <p className="text-[10px] text-slate-600">
                       {log.entityType} · {formatTime(log.createdAt)}

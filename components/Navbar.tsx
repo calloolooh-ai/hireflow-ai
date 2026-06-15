@@ -26,7 +26,7 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/dashboard/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(`/dashboard/jobs?q=${encodeURIComponent(query.trim())}`)
     }
   }
 

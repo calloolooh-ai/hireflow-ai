@@ -81,6 +81,10 @@ function ScoreChip({ score, label, icon: Icon, color }: {
   )
 }
 
+interface CandidateCardPropsExtended extends CandidateCardProps {
+  awaitingApproval?: boolean
+}
+
 export default function CandidateCard({
   id,
   name,
@@ -88,8 +92,9 @@ export default function CandidateCard({
   evaluations,
   decision,
   onApprove,
-}: CandidateCardProps) {
-  const [expanded, setExpanded] = useState(false)
+  awaitingApproval,
+}: CandidateCardPropsExtended) {
+  const [expanded, setExpanded] = useState(true)
   const [activeEval, setActiveEval] = useState<string | null>(null)
 
   const techEval = evaluations.find((e) => e.agentType === "technical_evaluator")
@@ -125,15 +130,41 @@ export default function CandidateCard({
             </div>
           </div>
 
-          {decision && DecisionIcon && (
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${decisionStyle.bg} ${decisionStyle.border}`}>
-              <DecisionIcon className={`w-3.5 h-3.5 ${decisionStyle.text}`} />
-              <span className={`text-xs font-bold ${decisionStyle.text}`}>
-                {decision.decision}
+          <div className="flex items-center gap-2 flex-wrap">
+            {decision && DecisionIcon && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${decisionStyle.bg} ${decisionStyle.border}`}>
+                <DecisionIcon className={`w-3.5 h-3.5 ${decisionStyle.text}`} />
+                <span className={`text-xs font-bold ${decisionStyle.text}`}>
+                  {decision.decision}
+                </span>
+              </div>
+            )}
+            {awaitingApproval && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-semibold border-amber-500/30 bg-amber-500/10 text-amber-400">
+                ⏳ Awaiting Human Approval
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Skills — shown above scores */}
+        {resumeOutput?.skills && (
+          <div className="mt-3 flex flex-wrap gap-1">
+            {resumeOutput.skills.slice(0, 6).map((skill: string) => (
+              <span
+                key={skill}
+                className="px-1.5 py-0.5 rounded bg-[#1e293b] border border-[#334155] text-[10px] text-slate-400"
+              >
+                {skill}
+              </span>
+            ))}
+            {resumeOutput.skills.length > 6 && (
+              <span className="px-1.5 py-0.5 text-[10px] text-slate-600">
+                +{resumeOutput.skills.length - 6}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Score row */}
         {(techEval || cultureEval) && (
@@ -170,22 +201,34 @@ export default function CandidateCard({
           </div>
         )}
 
-        {/* Skills */}
-        {resumeOutput?.skills && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {resumeOutput.skills.slice(0, 5).map((skill: string) => (
-              <span
-                key={skill}
-                className="px-1.5 py-0.5 rounded bg-[#1e293b] border border-[#334155] text-[10px] text-slate-400"
-              >
-                {skill}
-              </span>
-            ))}
-            {resumeOutput.skills.length > 5 && (
-              <span className="px-1.5 py-0.5 text-[10px] text-slate-600">
-                +{resumeOutput.skills.length - 5}
-              </span>
-            )}
+        {/* Approval buttons — always visible when applicable */}
+        {decision && !decision.humanDecision && onApprove && (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => onApprove(id, "approve")}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-md transition-colors"
+            >
+              <CheckCircle className="w-3 h-3" />
+              Approve
+            </button>
+            <button
+              onClick={() => onApprove(id, "review")}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-md transition-colors"
+            >
+              Hold
+            </button>
+            <button
+              onClick={() => onApprove(id, "reject")}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-md transition-colors"
+            >
+              <XCircle className="w-3 h-3" />
+              Reject
+            </button>
+          </div>
+        )}
+        {decision?.humanDecision && (
+          <div className="mt-2 text-xs text-slate-500">
+            Human decision: <span className="text-slate-300 font-medium capitalize">{decision.humanDecision}</span>
           </div>
         )}
       </div>
@@ -266,39 +309,7 @@ export default function CandidateCard({
             </div>
           )}
 
-          {/* Human approval */}
-          {decision && !decision.humanDecision && onApprove && (
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-xs text-slate-500 mr-1">Human review:</span>
-              <button
-                onClick={() => onApprove(id, "approve")}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-md transition-colors"
-              >
-                <CheckCircle className="w-3 h-3" />
-                Approve
-              </button>
-              <button
-                onClick={() => onApprove(id, "review")}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-md transition-colors"
-              >
-                <ExternalLink className="w-3 h-3" />
-                Request Review
-              </button>
-              <button
-                onClick={() => onApprove(id, "reject")}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-md transition-colors"
-              >
-                <XCircle className="w-3 h-3" />
-                Reject
-              </button>
-            </div>
-          )}
-
-          {decision?.humanDecision && (
-            <div className="text-xs text-slate-500 pt-1">
-              Human decision: <span className="text-slate-300 font-medium capitalize">{decision.humanDecision}</span>
-            </div>
-          )}
+          {/* Reasoning */}
         </div>
       )}
     </div>

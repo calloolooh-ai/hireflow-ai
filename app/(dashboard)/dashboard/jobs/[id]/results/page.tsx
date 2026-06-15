@@ -20,9 +20,10 @@ import {
   TrendingUp,
   XCircle,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react"
 
-type Tab = "overview" | "candidates" | "band" | "audit"
+type Tab = "band" | "candidates"
 
 interface ResultsData {
   job: {
@@ -68,10 +69,8 @@ interface ResultsData {
 }
 
 const TAB_CONFIG = [
-  { id: "overview" as Tab, label: "Overview", icon: BarChart3 },
-  { id: "candidates" as Tab, label: "Candidates", icon: Users },
   { id: "band" as Tab, label: "Band Activity", icon: MessageSquare },
-  { id: "audit" as Tab, label: "Audit Trail", icon: Clock },
+  { id: "candidates" as Tab, label: "Candidates & Scores", icon: Users },
 ]
 
 export default function ResultsPage() {
@@ -85,6 +84,7 @@ export default function ResultsPage() {
   const [bandThread, setBandThread] = useState<string | null>(null)
   const [approveError, setApproveError] = useState<string | null>(null)
   const [bandMode, setBandMode] = useState<"live" | "mock">("mock")
+  const [auditOpen, setAuditOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -246,76 +246,41 @@ export default function ResultsPage() {
           </div>
 
           <div className="p-5">
-            {/* Overview tab */}
-            {tab === "overview" && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-white">Candidate Score Matrix</h3>
-                <CandidateMatrix
-                  candidates={matrixRows}
-                  jobId={id}
-                  onCandidateClick={(cId) => {
-                    setSelectedCandidate(cId === selectedCandidate ? null : cId)
-                    setTab("candidates")
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Candidates tab */}
-            {tab === "candidates" && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-white mb-4">
-                  Candidate Evaluations
-                </h3>
-                {candidates.length === 0 ? (
-                  <p className="text-sm text-slate-500">No candidates evaluated yet.</p>
-                ) : (
-                  <>
-                  {approveError && (
-                    <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{approveError}</p>
-                  )}
-                  {candidates.map((c) => (
-                    <CandidateCard
-                      key={c.id}
-                      id={c.id}
-                      name={c.name}
-                      email={c.email}
-                      status={c.status}
-                      evaluations={c.evaluations}
-                      decision={c.decision}
-                      onApprove={handleApprove}
-                    />
-                  ))}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Band Activity tab */}
+            {/* Band Activity tab (default) */}
             {tab === "band" && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
                     <h3 className="text-sm font-semibold text-white">Band Collaboration Log</h3>
-                    {job.bandRoomId && !job.bandRoomId.startsWith("band-room-") ? (
-                      <a
-                        href="https://app.band.ai"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors"
-                      >
-                        View in Band
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
-                      <span
-                        title="Available in live Band mode"
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1e293b] border border-[#1e293b] text-slate-600 cursor-not-allowed"
-                      >
-                        View in Band
-                        <ExternalLink className="w-3 h-3" />
-                      </span>
-                    )}
+                    {(() => {
+                      const activeCandidate = bandThread
+                        ? candidates.find((c) => c.bandThreadId === bandThread)
+                        : candidates[0]
+                      const threadId = activeCandidate?.bandThreadId
+                      const isRealThread = threadId && !threadId.startsWith("thread-")
+                      if (bandMode === "live" && threadId) {
+                        return (
+                          <a
+                            href={isRealThread ? `https://app.band.ai/chats/${threadId}` : "https://app.band.ai"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                          >
+                            View in Band
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )
+                      }
+                      return (
+                        <span
+                          title="Available in live Band mode"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1e293b] border border-[#1e293b] text-slate-600 cursor-not-allowed"
+                        >
+                          View in Band
+                          <ExternalLink className="w-3 h-3" />
+                        </span>
+                      )
+                    })()}
                   </div>
                   <span className="text-xs text-slate-500">
                     {bandMessages.length} messages across {
@@ -366,19 +331,66 @@ export default function ResultsPage() {
                   bandMode={bandMode}
                   jobId={id}
                 />
+
+                {/* Collapsible audit log */}
+                <div className="pt-4 border-t border-[#1e293b]">
+                  <button
+                    onClick={() => setAuditOpen(!auditOpen)}
+                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors w-full"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${auditOpen ? "rotate-180" : ""}`} />
+                    Full Audit Log · {auditLogs.length} events
+                  </button>
+                  {auditOpen && (
+                    <div className="mt-3">
+                      <Timeline events={auditLogs} />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Audit Trail tab */}
-            {tab === "audit" && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Complete Audit Trail</h3>
-                  <span className="text-xs text-slate-500">
-                    {auditLogs.length} events logged
-                  </span>
+            {/* Candidates & Scores tab */}
+            {tab === "candidates" && (
+              <div className="space-y-5">
+                {/* Score matrix at top */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white mb-3">Score Matrix</h3>
+                  <CandidateMatrix
+                    candidates={matrixRows}
+                    jobId={id}
+                    onCandidateClick={(cId) => {
+                      setSelectedCandidate(cId === selectedCandidate ? null : cId)
+                    }}
+                  />
                 </div>
-                <Timeline events={auditLogs} />
+
+                {/* Candidate cards — expanded by default */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-white">Candidate Evaluations</h3>
+                  {candidates.length === 0 ? (
+                    <p className="text-sm text-slate-500">No candidates evaluated yet.</p>
+                  ) : (
+                    <>
+                    {approveError && (
+                      <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{approveError}</p>
+                    )}
+                    {candidates.map((c) => (
+                      <CandidateCard
+                        key={c.id}
+                        id={c.id}
+                        name={c.name}
+                        email={c.email}
+                        status={c.status}
+                        evaluations={c.evaluations}
+                        decision={c.decision}
+                        onApprove={handleApprove}
+                        awaitingApproval={!!c.decision && !c.decision.humanDecision}
+                      />
+                    ))}
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>

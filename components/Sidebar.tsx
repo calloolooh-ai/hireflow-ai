@@ -3,26 +3,18 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import {
   LayoutDashboard,
   Briefcase,
-  BarChart3,
-  Settings,
   LogOut,
   Cpu,
   ChevronRight,
-  Search,
-  Gavel,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/jobs", icon: Briefcase, label: "Jobs" },
-  { href: "/dashboard", icon: Gavel, label: "Approvals", badgeKey: "approvals" as const },
-  { href: "/dashboard/search", icon: Search, label: "Search" },
-  { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ]
 
 interface SidebarProps {
@@ -30,22 +22,27 @@ interface SidebarProps {
   onClose?: () => void
 }
 
+function getInitials(name?: string | null): string {
+  if (!name) return "?"
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?"
+  return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase()
+}
+
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
   const [bandLive, setBandLive] = useState<boolean | null>(null)
-  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
       .then((d) => setBandLive(d.bandMode === "live"))
       .catch(() => setBandLive(false))
-
-    fetch("/api/decisions?pendingApproval=true")
-      .then((r) => r.json())
-      .then((d) => setPendingCount((d.pending ?? []).length))
-      .catch(() => setPendingCount(0))
   }, [])
+
+  const initials = getInitials(session?.user?.name)
+  const userName = session?.user?.name ?? "User"
 
   return (
     <>
@@ -72,12 +69,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
               <Cpu className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <div className="font-bold text-white text-sm">HireFlow AI</div>
-              <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-                Multi-Agent
-              </div>
-            </div>
+            <div className="font-bold text-white text-sm">HireFlow AI</div>
           </Link>
         </div>
 
@@ -100,14 +92,11 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ href, icon: Icon, label, badgeKey }) => {
-            const isApprovals = badgeKey === "approvals"
-            const isActive = isApprovals
-              ? false
-              : href === "/dashboard"
+          {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+            const isActive =
+              href === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(href)
-            const showBadge = isApprovals && pendingCount > 0
 
             return (
               <Link
@@ -122,12 +111,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{label}</span>
-                {showBadge && (
-                  <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">
-                    {pendingCount}
-                  </span>
-                )}
-                {isActive && !showBadge && (
+                {isActive && (
                   <ChevronRight className="w-3 h-3 ml-auto text-blue-400/60" />
                 )}
               </Link>
@@ -158,8 +142,14 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* Sign out */}
-        <div className="p-3 border-t border-[#1e293b]">
+        {/* User + Sign out */}
+        <div className="p-3 border-t border-[#1e293b] space-y-1">
+          <div className="flex items-center gap-2.5 px-3 py-2">
+            <div className="w-7 h-7 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
+              <span className="text-[10px] font-bold text-blue-300">{initials}</span>
+            </div>
+            <span className="text-xs text-slate-400 truncate">{userName}</span>
+          </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"

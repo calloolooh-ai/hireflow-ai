@@ -269,6 +269,52 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
 
       {/* Messages */}
       {messages.map((msg, i) => {
+        // ── Inline conflict banner for debate_start messages ──────────────────
+        if (msg.agentType === "debate_start") {
+          const meta = safeParseMeta(msg.metadata)
+          const techScore = typeof meta?.techScore === "number" ? meta.techScore : null
+          const cultureScore = typeof meta?.cultureScore === "number" ? meta.cultureScore : null
+          return (
+            <div key={msg.id}>
+              <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-red-500/20 to-emerald-500/20 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm font-bold text-amber-300 uppercase tracking-wide">
+                    ⚡ CONFLICT DETECTED — Ranking Agent mediating
+                  </span>
+                </div>
+                <p className="text-xs text-amber-100/80 mb-3">{msg.content}</p>
+                {(techScore !== null || cultureScore !== null) && (
+                  <div className="flex items-center gap-3">
+                    {techScore !== null && (
+                      <div className="flex-1 rounded-md bg-purple-500/10 border border-purple-500/30 px-3 py-2">
+                        <div className="text-[10px] text-purple-300/80 uppercase font-semibold">Technical</div>
+                        <div className="text-lg font-bold text-purple-300">{techScore.toFixed(1)}</div>
+                      </div>
+                    )}
+                    <span className="text-amber-400 font-bold text-sm">vs</span>
+                    {cultureScore !== null && (
+                      <div className="flex-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
+                        <div className="text-[10px] text-emerald-300/80 uppercase font-semibold">Culture</div>
+                        <div className="text-lg font-bold text-emerald-300">{cultureScore.toFixed(1)}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {i < messages.length - 1 && (
+                <div className="flex flex-col items-center py-1">
+                  <div className="w-px h-3 bg-gradient-to-b from-indigo-500/50 to-transparent" />
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] text-indigo-400 font-semibold">
+                    <ArrowDown className="w-2.5 h-2.5" />
+                    via Band
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        }
+
         const config = AGENT_CONFIG[msg.agentType] || {
           label: msg.agentType,
           color: "text-slate-400",
@@ -290,18 +336,16 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
         const metaOutput = safeParseMeta(meta?.output ?? meta)
         const isExpanded = expandedId === msg.id
 
-        // Conflict detection (Feature 3)
-        const isConflict =
-          msg.agentType === "ranking_agent" &&
-          (msg.content.includes("⚡ Debate Mode") ||
-            msg.content.includes("CONFLICT DETECTED") ||
-            Boolean(meta && meta.debateMode))
-        let conflictScores: { tech?: number; culture?: number } = {}
-        if (isConflict) {
-          const src = (metaOutput ?? meta ?? {}) as Record<string, unknown>
-          if (typeof src.technicalScore === "number") conflictScores.tech = src.technicalScore
-          if (typeof src.cultureScore === "number") conflictScores.culture = src.cultureScore
+        // "Read N messages from Band" — use metadata if available, else position
+        const BAND_READ_COUNTS: Record<string, number> = {
+          resume_analyst: 0,
+          technical_evaluator: 1,
+          culture_evaluator: 2,
+          compensation_agent: 3,
+          ranking_agent: 4,
         }
+        const bandReadCount = (typeof meta?.band_messages_read === "number" ? meta.band_messages_read : null) ??
+          BAND_READ_COUNTS[msg.agentType] ?? 0
 
         return (
           <div key={msg.id} className="band-message">
@@ -325,27 +369,11 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
                 </div>
               </div>
 
-              {/* Conflict resolved banner (Feature 3) */}
-              {isConflict && (
-                <div className="mb-3 rounded-lg bg-gradient-to-r from-red-500/20 to-emerald-500/20 border border-amber-500/30 px-3 py-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                    <Zap className="w-3.5 h-3.5" />
-                    ⚡ CONFLICT RESOLVED
-                  </div>
-                  {(conflictScores.tech !== undefined || conflictScores.culture !== undefined) && (
-                    <div className="mt-1.5 flex items-center gap-4 text-[11px]">
-                      {conflictScores.tech !== undefined && (
-                        <span className="text-purple-400 font-semibold">
-                          Technical: {conflictScores.tech.toFixed(1)}
-                        </span>
-                      )}
-                      {conflictScores.culture !== undefined && (
-                        <span className="text-emerald-400 font-semibold">
-                          Culture: {conflictScores.culture.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                  )}
+              {/* "Read N messages from Band" — above content, proves context passing */}
+              {bandReadCount > 0 && (
+                <div className="text-[10px] text-indigo-400/70 mb-3 flex items-center gap-1.5 italic">
+                  <MessageSquare className="w-3 h-3 shrink-0" />
+                  📖 Read {bandReadCount} message{bandReadCount !== 1 ? "s" : ""} from Band before responding
                 </div>
               )}
 
@@ -401,7 +429,7 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
                 })}
               </div>
 
-              {/* Evidence toggle (Feature 2) */}
+              {/* Evidence toggle */}
               {metaOutput && (
                 <div className="mt-3">
                   <button
@@ -422,29 +450,16 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
                   )}
                 </div>
               )}
-
-              {/* Band read indicator */}
-              {i > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#1e293b]/50">
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                    <MessageSquare className="w-3 h-3" />
-                    Read {i} prior message{i !== 1 ? "s" : ""} from Band before posting
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Connector arrow */}
+            {/* Connector arrow between messages */}
             {i < messages.length - 1 && (
               <div className="flex flex-col items-center py-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-px h-3 bg-gradient-to-b from-indigo-500/50 to-transparent" />
-                </div>
+                <div className="w-px h-3 bg-gradient-to-b from-indigo-500/50 to-transparent" />
                 <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] text-indigo-400 font-semibold">
                   <ArrowDown className="w-2.5 h-2.5" />
                   via Band
                 </div>
-                <div className="w-px h-3 bg-gradient-to-b from-transparent to-transparent" />
               </div>
             )}
           </div>
