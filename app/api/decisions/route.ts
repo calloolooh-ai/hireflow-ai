@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
-import { decisions, auditLogs, candidates, jobs } from "@/lib/db/schema"
+import { decisions, auditLogs, candidates, jobs, evaluations } from "@/lib/db/schema"
 import { eq, and, inArray, isNull } from "drizzle-orm"
 import { randomUUID } from "crypto"
 
@@ -72,6 +72,8 @@ export async function GET(request: Request) {
         candidateName: candidates.name,
         jobTitle: jobs.title,
         decision: decisions.decision,
+        compositeScore: decisions.compositeScore,
+        reasoning: decisions.reasoning,
         humanDecision: decisions.humanDecision,
         createdAt: decisions.createdAt,
       })
@@ -80,14 +82,66 @@ export async function GET(request: Request) {
       .innerJoin(jobs, and(eq(jobs.id, candidates.jobId), eq(jobs.userId, session.user.id)))
       .where(isNull(decisions.humanDecision))
 
-    const pending = rows
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .map((r) => ({
+    const sorted = rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    const candidateIds = sorted.map((r) => r.candidateId)
+    const evalRows = candidateIds.length > 0
+      ? await db
+          .select({ candidateId: evaluations.candidateId, agentType: evaluations.agentType, output: evaluations.output, score: evaluations.score })
+          .from(evaluations)
+          .where(inArray(evaluations.candidateId, candidateIds))
+      : []
+
+    const evalsByCandidate = new Map<string, typeof evalRows>()
+    for (const e of evalRows) {
+      const list = evalsByCandidate.get(e.candidateId) ?? []
+      list.push(e)
+      evalsByCandidate.set(e.candidateId, list)
+    }
+
+    const pending = sorted.map((r) => {
+      const evals = evalsByCandidate.get(r.candidateId) ?? []
+      const tech = evals.find((e) => e.agentType === "technical_evaluator")
+      const culture = evals.find((e) => e.agentType === "culture_evaluator")
+
+      let strengths: string[] = []
+      let weaknesses: string[] = []
+      let technicalScore: number | null = tech?.score ?? null
+      let cultureScore: number | null = culture?.score ?? null
+
+      if (tech?.output) {
+        try {
+          const parsed = JSON.parse(tech.output)
+          if (Array.isArray(parsed.strengths)) strengths = parsed.strengths.slice(0, 3)
+          if (Array.isArray(parsed.weaknesses)) weaknesses = parsed.weaknesses.slice(0, 3)
+        } catch { /* ignore */ }
+      }
+
+      let cultureReasoning: string | null = null
+      if (culture?.output) {
+        try {
+          const parsed = JSON.parse(culture.output)
+          if (parsed.reasoning) cultureReasoning = String(parsed.reasoning)
+          else if (parsed.rationale) cultureReasoning = String(parsed.rationale)
+        } catch { /* ignore */ }
+      }
+
+      return {
         candidateId: r.candidateId,
         candidateName: r.candidateName,
         jobTitle: r.jobTitle,
         decision: r.decision,
-      }))
+        summary: {
+          compositeScore: r.compositeScore ?? null,
+          technicalScore,
+          cultureScore,
+          strengths,
+          weaknesses,
+          rankingReasoning: r.reasoning ?? null,
+          cultureReasoning,
+        },
+      }
+    })
 
     return NextResponse.json({ pending })
   }

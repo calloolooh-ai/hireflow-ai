@@ -15,6 +15,8 @@ import {
   Database,
   Loader2,
   Gavel,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -34,11 +36,22 @@ interface Activity {
   createdAt: string
 }
 
+interface CandidateSummary {
+  compositeScore: number | null
+  technicalScore: number | null
+  cultureScore: number | null
+  strengths: string[]
+  weaknesses: string[]
+  rankingReasoning: string | null
+  cultureReasoning: string | null
+}
+
 interface PendingApproval {
   candidateId: string
   candidateName: string
   jobTitle: string
   decision: "HIRE" | "HOLD" | "REJECT"
+  summary: CandidateSummary
 }
 
 export default function DashboardPage() {
@@ -55,6 +68,7 @@ export default function DashboardPage() {
   const [seeding, setSeeding] = useState(false)
   const [pending, setPending] = useState<PendingApproval[]>([])
   const [actioning, setActioning] = useState<string | null>(null)
+  const [expandedCard, setExpandedCard] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -271,47 +285,137 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="divide-y divide-[#1e293b]">
-              {pending.slice(0, 3).map((p) => (
-                <div
-                  key={p.candidateId}
-                  className="px-5 py-4 flex items-center gap-4 flex-wrap"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{p.candidateName}</p>
-                    <p className="text-xs text-slate-500 truncate">{p.jobTitle}</p>
+              {pending.slice(0, 3).map((p) => {
+                const isExpanded = expandedCard === p.candidateId
+                const hasSummary = p.summary && (
+                  p.summary.strengths.length > 0 ||
+                  p.summary.weaknesses.length > 0 ||
+                  p.summary.rankingReasoning ||
+                  p.summary.compositeScore != null
+                )
+                return (
+                  <div key={p.candidateId} className="divide-y divide-[#1e293b]">
+                    {/* Card header row */}
+                    <div className="px-5 py-4 flex items-center gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{p.candidateName}</p>
+                        <p className="text-xs text-slate-500 truncate">{p.jobTitle}</p>
+                      </div>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-bold ${
+                          DECISION_COLORS[p.decision] || "text-slate-400 bg-slate-500/10 border-slate-500/30"
+                        }`}
+                      >
+                        AI: {p.decision}
+                      </span>
+                      {hasSummary && (
+                        <button
+                          onClick={() => setExpandedCard(isExpanded ? null : p.candidateId)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1e293b] hover:bg-[#334155] text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                          {isExpanded ? (
+                            <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
+                          ) : (
+                            <><ChevronDown className="w-3.5 h-3.5" /> Quick View</>
+                          )}
+                        </button>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApproval(p.candidateId, "approve")}
+                          disabled={actioning === p.candidateId}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-60"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleApproval(p.candidateId, "review")}
+                          disabled={actioning === p.candidateId}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-60"
+                        >
+                          Hold
+                        </button>
+                        <button
+                          onClick={() => handleApproval(p.candidateId, "reject")}
+                          disabled={actioning === p.candidateId}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-60"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Collapsible summary panel */}
+                    {isExpanded && hasSummary && (
+                      <div className="px-5 py-4 bg-[#0f172a]/60 space-y-4">
+                        {/* Scores row */}
+                        {(p.summary.compositeScore != null || p.summary.technicalScore != null || p.summary.cultureScore != null) && (
+                          <div className="flex items-center gap-4 flex-wrap">
+                            {p.summary.compositeScore != null && (
+                              <div className="flex flex-col items-center bg-[#111827] border border-[#1e293b] rounded-lg px-4 py-2">
+                                <span className="text-lg font-bold text-white">{p.summary.compositeScore.toFixed(1)}</span>
+                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Composite</span>
+                              </div>
+                            )}
+                            {p.summary.technicalScore != null && (
+                              <div className="flex flex-col items-center bg-[#111827] border border-[#1e293b] rounded-lg px-4 py-2">
+                                <span className="text-lg font-bold text-purple-400">{p.summary.technicalScore.toFixed(1)}</span>
+                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Technical</span>
+                              </div>
+                            )}
+                            {p.summary.cultureScore != null && (
+                              <div className="flex flex-col items-center bg-[#111827] border border-[#1e293b] rounded-lg px-4 py-2">
+                                <span className="text-lg font-bold text-emerald-400">{p.summary.cultureScore.toFixed(1)}</span>
+                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Culture</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Strengths + Weaknesses */}
+                        {(p.summary.strengths.length > 0 || p.summary.weaknesses.length > 0) && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {p.summary.strengths.length > 0 && (
+                              <div>
+                                <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1.5">Strengths</p>
+                                <ul className="space-y-1">
+                                  {p.summary.strengths.map((s, i) => (
+                                    <li key={i} className="flex items-start gap-1.5 text-xs text-slate-300">
+                                      <span className="text-emerald-500 mt-0.5 shrink-0">+</span>
+                                      <span>{s}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {p.summary.weaknesses.length > 0 && (
+                              <div>
+                                <p className="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1.5">Weaknesses</p>
+                                <ul className="space-y-1">
+                                  {p.summary.weaknesses.map((w, i) => (
+                                    <li key={i} className="flex items-start gap-1.5 text-xs text-slate-300">
+                                      <span className="text-red-500 mt-0.5 shrink-0">−</span>
+                                      <span>{w}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Ranking agent reasoning */}
+                        {p.summary.rankingReasoning && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider mb-1.5">Agent Reasoning</p>
+                            <p className="text-xs text-slate-400 leading-relaxed">{p.summary.rankingReasoning}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-bold ${
-                      DECISION_COLORS[p.decision] || "text-slate-400 bg-slate-500/10 border-slate-500/30"
-                    }`}
-                  >
-                    AI: {p.decision}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleApproval(p.candidateId, "approve")}
-                      disabled={actioning === p.candidateId}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-60"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleApproval(p.candidateId, "review")}
-                      disabled={actioning === p.candidateId}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-60"
-                    >
-                      Hold
-                    </button>
-                    <button
-                      onClick={() => handleApproval(p.candidateId, "reject")}
-                      disabled={actioning === p.candidateId}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-60"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
