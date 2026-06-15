@@ -434,16 +434,49 @@ export default function JobDetailPage() {
               </div>
 
               <div className="p-6 space-y-4">
-                {/* CSV upload */}
-                <div className="p-3 rounded-lg bg-[#0f172a] border border-dashed border-[#334155]">
-                  <div className="flex items-center gap-3">
-                    <Upload className="w-4 h-4 text-slate-500" />
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-slate-400">CSV Upload</p>
-                      <p className="text-[10px] text-slate-600">Format: name, email, resume, linkedin</p>
+                {csvFile ? (
+                  /* ── CSV selected state: hide manual form, show import UI ── */
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-lg bg-[#0f172a] border border-blue-500/30 flex items-center gap-3">
+                      <Upload className="w-4 h-4 text-blue-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-white truncate">{csvFile.name}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Ready to import — format: name, email, resume, linkedin</p>
+                      </div>
+                      <button
+                        onClick={() => setCsvFile(null)}
+                        className="text-slate-500 hover:text-slate-300 shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <label className="cursor-pointer">
-                      <span className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-slate-300 rounded-md transition-colors">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setCsvFile(null); setShowAddCandidate(false) }}
+                        className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleCsvUpload}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        Import Candidates
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Default state: CSV browse + manual form ── */
+                  <>
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-[#0f172a] border border-dashed border-[#334155] hover:border-[#475569] cursor-pointer transition-colors">
+                      <Upload className="w-4 h-4 text-slate-500" />
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-slate-400">Import from CSV</p>
+                        <p className="text-[10px] text-slate-600">Format: name, email, resume, linkedin</p>
+                      </div>
+                      <span className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-slate-300 rounded-md transition-colors shrink-0">
                         Browse
                       </span>
                       <input
@@ -453,91 +486,80 @@ export default function JobDetailPage() {
                         onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
                       />
                     </label>
-                    {csvFile && (
-                      <button
-                        onClick={handleCsvUpload}
-                        className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors"
-                      >
-                        Import
-                      </button>
-                    )}
-                  </div>
-                  {csvFile && (
-                    <p className="mt-2 text-xs text-blue-400">{csvFile.name}</p>
-                  )}
-                </div>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#1e293b]" />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="px-2 bg-[#111827] text-[10px] text-slate-600 uppercase">or add manually</span>
-                  </div>
-                </div>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-[#1e293b]" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="px-2 bg-[#111827] text-[10px] text-slate-600 uppercase">or add manually</span>
+                      </div>
+                    </div>
 
-                <form onSubmit={handleAddCandidate} className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Name *</label>
-                      <input
-                        type="text"
-                        value={form.name}
-                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        required
-                        placeholder="Jane Smith"
-                        className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Email *</label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                        required
-                        placeholder="jane@example.com"
-                        className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">LinkedIn URL</label>
-                    <input
-                      type="url"
-                      value={form.linkedinUrl}
-                      onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
-                      placeholder="https://linkedin.com/in/..."
-                      className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Resume Text</label>
-                    <textarea
-                      value={form.resumeText}
-                      onChange={(e) => setForm((f) => ({ ...f, resumeText: e.target.value }))}
-                      rows={4}
-                      placeholder="Paste resume content here..."
-                      className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddCandidate(false)}
-                      className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      Add Candidate
-                    </button>
-                  </div>
-                </form>
+                    <form onSubmit={handleAddCandidate} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Name *</label>
+                          <input
+                            type="text"
+                            value={form.name}
+                            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                            required
+                            placeholder="Jane Smith"
+                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Email *</label>
+                          <input
+                            type="email"
+                            value={form.email}
+                            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                            required
+                            placeholder="jane@example.com"
+                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">LinkedIn URL</label>
+                        <input
+                          type="url"
+                          value={form.linkedinUrl}
+                          onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
+                          placeholder="https://linkedin.com/in/..."
+                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">Resume Text</label>
+                        <textarea
+                          value={form.resumeText}
+                          onChange={(e) => setForm((f) => ({ ...f, resumeText: e.target.value }))}
+                          rows={4}
+                          placeholder="Paste resume content here..."
+                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddCandidate(false)}
+                          className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          Add Candidate
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           </div>
