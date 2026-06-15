@@ -13,11 +13,13 @@ import {
   Cpu,
   ChevronRight,
   Search,
+  Gavel,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/jobs", icon: Briefcase, label: "Jobs" },
+  { href: "/dashboard", icon: Gavel, label: "Approvals", badgeKey: "approvals" as const },
   { href: "/dashboard/search", icon: Search, label: "Search" },
   { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
@@ -31,12 +33,18 @@ interface SidebarProps {
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [bandLive, setBandLive] = useState<boolean | null>(null)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
       .then((d) => setBandLive(d.bandMode === "live"))
       .catch(() => setBandLive(false))
+
+    fetch("/api/decisions?pendingApproval=true")
+      .then((r) => r.json())
+      .then((d) => setPendingCount((d.pending ?? []).length))
+      .catch(() => setPendingCount(0))
   }, [])
 
   return (
@@ -92,15 +100,18 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-            const isActive =
-              href === "/dashboard"
+          {NAV_ITEMS.map(({ href, icon: Icon, label, badgeKey }) => {
+            const isApprovals = badgeKey === "approvals"
+            const isActive = isApprovals
+              ? false
+              : href === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(href)
+            const showBadge = isApprovals && pendingCount > 0
 
             return (
               <Link
-                key={href}
+                key={label}
                 href={href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
@@ -111,7 +122,12 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{label}</span>
-                {isActive && (
+                {showBadge && (
+                  <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">
+                    {pendingCount}
+                  </span>
+                )}
+                {isActive && !showBadge && (
                   <ChevronRight className="w-3 h-3 ml-auto text-blue-400/60" />
                 )}
               </Link>

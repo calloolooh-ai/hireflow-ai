@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
 import { jobs, candidates, evaluations, decisions } from "@/lib/db/schema"
-import { eq, desc, count, inArray } from "drizzle-orm"
+import { eq, desc, count, inArray, and } from "drizzle-orm"
 
 export async function GET() {
   const session = await auth()
@@ -32,7 +32,7 @@ export async function GET() {
     : [{ count: 0 }]
 
   const [{ count: hiresRecommended }] = userCandidateIds.length > 0
-    ? await db.select({ count: count() }).from(decisions).where(inArray(decisions.candidateId, userCandidateIds))
+    ? await db.select({ count: count() }).from(decisions).where(and(inArray(decisions.candidateId, userCandidateIds), eq(decisions.decision, "HIRE")))
     : [{ count: 0 }]
 
   const allDecisions = userCandidateIds.length > 0

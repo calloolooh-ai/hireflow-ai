@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import {
   Briefcase,
@@ -11,6 +12,9 @@ import {
   Clock,
   Cpu,
   Activity,
+  Database,
+  Loader2,
+  Gavel,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -30,7 +34,15 @@ interface Activity {
   createdAt: string
 }
 
+interface PendingApproval {
+  candidateId: string
+  candidateName: string
+  jobTitle: string
+  decision: "HIRE" | "HOLD" | "REJECT"
+}
+
 export default function DashboardPage() {
+  const router = useRouter()
   const [stats, setStats] = useState<Stats>({
     activeJobs: 0,
     totalCandidates: 0,
@@ -39,12 +51,18 @@ export default function DashboardPage() {
   })
   const [recentActivity, setRecentActivity] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasJobs, setHasJobs] = useState<boolean>(true)
+  const [seeding, setSeeding] = useState(false)
+  const [pending, setPending] = useState<PendingApproval[]>([])
+  const [actioning, setActioning] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
       fetch("/api/analytics").then((r) => r.json()),
       fetch("/api/audit?limit=8").then((r) => r.json()),
-    ]).then(([analyticsData, auditData]) => {
+      fetch("/api/jobs").then((r) => r.json()),
+      fetch("/api/decisions?pendingApproval=true").then((r) => r.json()),
+    ]).then(([analyticsData, auditData, jobsData, pendingData]) => {
       setStats({
         activeJobs: analyticsData.activeJobs ?? 0,
         totalCandidates: analyticsData.totalCandidates ?? 0,
@@ -52,9 +70,49 @@ export default function DashboardPage() {
         hiresRecommended: analyticsData.hiresRecommended ?? 0,
       })
       setRecentActivity(auditData.logs ?? [])
+      setHasJobs((jobsData.jobs ?? []).length > 0)
+      setPending(pendingData.pending ?? [])
       setLoading(false)
-    })
+    }).catch(() => setLoading(false))
   }, [])
+
+  const handleLoadDemo = async () => {
+    if (seeding) return
+    setSeeding(true)
+    try {
+      const res = await fetch("/api/seed-demo", { method: "POST" })
+      const data = await res.json()
+      if (data.jobId) {
+        router.push(`/dashboard/jobs/${data.jobId}`)
+      } else {
+        setSeeding(false)
+      }
+    } catch {
+      setSeeding(false)
+    }
+  }
+
+  const handleApproval = async (candidateId: string, action: "approve" | "review" | "reject") => {
+    setActioning(candidateId)
+    try {
+      const res = await fetch("/api/decisions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, action }),
+      })
+      if (res.ok) {
+        setPending((prev) => prev.filter((p) => p.candidateId !== candidateId))
+      }
+    } finally {
+      setActioning(null)
+    }
+  }
+
+  const DECISION_COLORS: Record<string, string> = {
+    HIRE: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+    HOLD: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+    REJECT: "text-red-400 bg-red-500/10 border-red-500/30",
+  }
 
   const statCards = [
     {
@@ -93,7 +151,7 @@ export default function DashboardPage() {
 
   const formatAction = (log: Activity) => {
     const actor = log.actorType === "agent"
-      ? `Agent: ${log.actorId?.replace("_", " ")}`
+      ? `Agent: ${log.actorId?.replace(/_/g, " ")}`
       : "Human"
     return `${actor} — ${log.action.replace(/_/g, " ")}`
   }
@@ -123,13 +181,29 @@ export default function DashboardPage() {
                 decision is transparent and auditable.
               </p>
             </div>
-            <Link
-              href="/dashboard/jobs/new"
-              className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <Briefcase className="w-3.5 h-3.5" />
-              New Job
-            </Link>
+            <div className="shrink-0 flex items-center gap-2">
+              {!loading && !hasJobs && (
+                <button
+                  onClick={handleLoadDemo}
+                  disabled={seeding}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-[#1e293b] hover:bg-[#334155] text-slate-200 text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+                >
+                  {seeding ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Database className="w-3.5 h-3.5" />
+                  )}
+                  {seeding ? "Loading..." : "Load Demo Data"}
+                </button>
+              )}
+              <Link
+                href="/dashboard/jobs/new"
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <Briefcase className="w-3.5 h-3.5" />
+                New Job
+              </Link>
+            </div>
           </div>
 
           {/* Agent flow preview */}
@@ -185,6 +259,62 @@ export default function DashboardPage() {
             </Link>
           ))}
         </div>
+
+        {/* Awaiting Your Decision */}
+        {pending.length > 0 && (
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
+            <div className="px-5 py-4 border-b border-[#1e293b] flex items-center gap-2">
+              <Gavel className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-semibold text-white">Awaiting Your Decision</h3>
+              <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">
+                {pending.length}
+              </span>
+            </div>
+            <div className="divide-y divide-[#1e293b]">
+              {pending.slice(0, 3).map((p) => (
+                <div
+                  key={p.candidateId}
+                  className="px-5 py-4 flex items-center gap-4 flex-wrap"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{p.candidateName}</p>
+                    <p className="text-xs text-slate-500 truncate">{p.jobTitle}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-bold ${
+                      DECISION_COLORS[p.decision] || "text-slate-400 bg-slate-500/10 border-slate-500/30"
+                    }`}
+                  >
+                    AI: {p.decision}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleApproval(p.candidateId, "approve")}
+                      disabled={actioning === p.candidateId}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-60"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleApproval(p.candidateId, "review")}
+                      disabled={actioning === p.candidateId}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-60"
+                    >
+                      Hold
+                    </button>
+                    <button
+                      onClick={() => handleApproval(p.candidateId, "reject")}
+                      disabled={actioning === p.candidateId}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-60"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent activity */}
         <div className="bg-[#111827] border border-[#1e293b] rounded-xl">

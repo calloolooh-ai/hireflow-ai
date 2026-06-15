@@ -23,6 +23,8 @@ import {
   Cpu,
   Archive,
   ArchiveRestore,
+  Pencil,
+  Check,
 } from "lucide-react"
 import type { EvalEvent, AgentType } from "@/lib/types"
 
@@ -78,6 +80,9 @@ export default function JobDetailPage() {
     resumeText: "",
     linkedinUrl: "",
   })
+  const [showEdit, setShowEdit] = useState(false)
+  const [editForm, setEditForm] = useState({ title: "", department: "", level: "", location: "", description: "" })
+  const [editSaving, setEditSaving] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -85,9 +90,13 @@ export default function JobDetailPage() {
       fetch(`/api/candidates?jobId=${id}`).then((r) => r.json()),
     ]).then(([jobData, candidateData]) => {
       setJob(jobData.job)
+      if (jobData.job) {
+        const j = jobData.job
+        setEditForm({ title: j.title, department: j.department, level: j.level, location: j.location, description: j.description })
+      }
       setCandidates(candidateData.candidates || [])
       setLoading(false)
-    })
+    }).catch(() => setLoading(false))
   }, [id])
 
   const handleAddCandidate = async (e: React.FormEvent) => {
@@ -149,10 +158,13 @@ export default function JobDetailPage() {
     const pending = candidates.filter((c) => c.status === "pending")
     if (pending.length === 0) return
     setEvaluatingAll(true)
-    for (const c of pending) {
-      await runEvaluation(c.id)
+    try {
+      for (const c of pending) {
+        await runEvaluation(c.id)
+      }
+    } finally {
+      setEvaluatingAll(false)
     }
-    setEvaluatingAll(false)
   }
 
   const runEvaluation = async (candidateId: string) => {
@@ -243,6 +255,22 @@ export default function JobDetailPage() {
     setJob((j) => j ? { ...j, status: "active" } : j)
   }
 
+  const handleEditJob = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEditSaving(true)
+    const res = await fetch(`/api/jobs/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editForm),
+    })
+    if (res.ok) {
+      setJob((j) => j ? { ...j, ...editForm } : j)
+      setShowEdit(false)
+    }
+    setEditSaving(false)
+  }
+
+  const hasEvaluated = candidates.some((c) => c.status !== "pending" && c.status !== "evaluating")
   const isEvaluating = !!evaluatingId
 
   return (
@@ -293,13 +321,22 @@ export default function JobDetailPage() {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href={`/dashboard/jobs/${id}/results`}
+              {hasEvaluated && (
+                <Link
+                  href={`/dashboard/jobs/${id}/results`}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-lg transition-colors"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  Results
+                </Link>
+              )}
+              <button
+                onClick={() => { setEditForm({ title: job.title, department: job.department, level: job.level, location: job.location, description: job.description }); setShowEdit(true) }}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-lg transition-colors"
               >
-                <BarChart3 className="w-3.5 h-3.5" />
-                Results
-              </Link>
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </button>
               <button
                 onClick={() => setShowAddCandidate(true)}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-300 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-lg transition-colors"
@@ -334,6 +371,53 @@ export default function JobDetailPage() {
             </p>
           </div>
         </div>
+
+        {/* Edit job modal */}
+        {showEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-lg bg-[#111827] border border-[#1e293b] rounded-xl shadow-2xl m-4">
+              <div className="px-6 py-4 border-b border-[#1e293b] flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-white">Edit Job</h3>
+                <button onClick={() => setShowEdit(false)} className="text-slate-500 hover:text-slate-300">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <form onSubmit={handleEditJob} className="p-6 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-xs text-slate-400 mb-1">Title *</label>
+                    <input type="text" value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} required className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Department</label>
+                    <input type="text" value={editForm.department} onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))} className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Level</label>
+                    <select value={editForm.level} onChange={(e) => setEditForm((f) => ({ ...f, level: e.target.value }))} className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs focus:outline-none focus:border-blue-500">
+                      {["junior","mid","senior","staff","principal","director"].map((l) => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-slate-400 mb-1">Location</label>
+                    <input type="text" value={editForm.location} onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))} className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-slate-400 mb-1">Description</label>
+                    <textarea value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} rows={4} className="w-full px-3 py-2 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none" />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button type="button" onClick={() => setShowEdit(false)} className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200">Cancel</button>
+                  <button type="submit" disabled={editSaving} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50">
+                    {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Add candidate modal */}
         {showAddCandidate && (

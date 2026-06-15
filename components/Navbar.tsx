@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Bell, User } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -14,6 +14,14 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
   const { data: session } = useSession()
   const router = useRouter()
   const [query, setQuery] = useState("")
+  const [isDemoMode, setIsDemoMode] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((d) => setIsDemoMode(Boolean(d.isDemoMode)))
+      .catch(() => setIsDemoMode(false))
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +50,13 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
             className="w-56 pl-8 pr-3 py-1.5 bg-[#111827] border border-[#1e293b] rounded-lg text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-colors"
           />
         </form>
+
+        {isDemoMode && (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            DEMO MODE
+          </span>
+        )}
 
         <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#1e293b] transition-colors text-slate-400 hover:text-slate-200">
           <Bell className="w-4 h-4" />

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import Link from "next/link"
 import { Search, Briefcase, Users, Loader2 } from "lucide-react"
@@ -14,9 +14,13 @@ interface SearchResults {
 
 function SearchResults() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const q = searchParams.get("q") || ""
+  const [inputValue, setInputValue] = useState(q)
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => { setInputValue(q) }, [q])
 
   useEffect(() => {
     if (!q) return
@@ -27,20 +31,38 @@ function SearchResults() {
         setResults(d.results)
         setLoading(false)
       })
+      .catch(() => setLoading(false))
   }, [q])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = inputValue.trim()
+    if (trimmed) router.push(`/dashboard/search?q=${encodeURIComponent(trimmed)}`)
+  }
 
   const total = (results?.jobs.length || 0) + (results?.candidates.length || 0)
 
   return (
     <div className="p-6 space-y-5">
+      <form onSubmit={handleSearch} className="relative max-w-lg">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Search jobs, candidates..."
+          autoFocus
+          className="w-full pl-9 pr-4 py-2.5 bg-[#111827] border border-[#1e293b] rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+        />
+      </form>
+
       <div className="flex items-center gap-2 text-sm">
-        <Search className="w-4 h-4 text-slate-500" />
         <span className="text-slate-400">
           {q ? (
             <>Results for <span className="text-white font-medium">&quot;{q}&quot;</span>
             {!loading && results && ` — ${total} found`}</>
           ) : (
-            "Enter a search query"
+            "Type above and press Enter to search"
           )}
         </span>
       </div>

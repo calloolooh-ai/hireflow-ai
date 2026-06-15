@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
-import { candidates } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { candidates, jobs } from "@/lib/db/schema"
+import { eq, and } from "drizzle-orm"
+
+async function getOwnedCandidate(candidateId: string, userId: string) {
+  const rows = await db
+    .select({ candidate: candidates })
+    .from(candidates)
+    .innerJoin(jobs, and(eq(jobs.id, candidates.jobId), eq(jobs.userId, userId)))
+    .where(eq(candidates.id, candidateId))
+    .limit(1)
+  return rows[0]?.candidate ?? null
+}
 
 export async function GET(
   _req: Request,
@@ -13,10 +23,12 @@ export async function GET(
 
   await ensureInit()
   const { id } = await params
-  const rows = await db.select().from(candidates).where(eq(candidates.id, id)).limit(1)
-  if (!rows[0]) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  return NextResponse.json({ candidate: rows[0] })
+  const candidate = await getOwnedCandidate(id, session.user.id)
+  if (!candidate) return NextResponse.json({ error: "Not found" }, { status: 404 })
+  return NextResponse.json({ candidate })
 }
+
+const ALLOWED_CANDIDATE_FIELDS = ["name", "email", "resumeText", "linkedinUrl", "status"] as const
 
 export async function PATCH(
   request: Request,
@@ -27,8 +39,16 @@ export async function PATCH(
 
   await ensureInit()
   const { id } = await params
+  const candidate = await getOwnedCandidate(id, session.user.id)
+  if (!candidate) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
   const body = await request.json()
-  await db.update(candidates).set({ ...body, updatedAt: new Date() }).where(eq(candidates.id, id))
+  const update: Record<string, unknown> = { updatedAt: new Date() }
+  for (const field of ALLOWED_CANDIDATE_FIELDS) {
+    if (field in body) update[field] = body[field]
+  }
+
+  await db.update(candidates).set(update).where(eq(candidates.id, id))
   return NextResponse.json({ success: true })
 }
 
@@ -41,6 +61,9 @@ export async function DELETE(
 
   await ensureInit()
   const { id } = await params
+  const candidate = await getOwnedCandidate(id, session.user.id)
+  if (!candidate) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
   await db.delete(candidates).where(eq(candidates.id, id))
   return NextResponse.json({ success: true })
 }

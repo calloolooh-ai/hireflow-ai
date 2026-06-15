@@ -10,6 +10,7 @@ import {
   Play,
   Trophy,
   Loader2,
+  Zap,
 } from "lucide-react"
 import type { EvalEvent, AgentType } from "@/lib/types"
 
@@ -79,7 +80,55 @@ export default function ActivityFeed({ events, isRunning }: Props) {
         </div>
       )}
 
-      {events.map((event, i) => (
+      {events.map((event, i) => {
+        if (event.type === "debate_start") {
+          return (
+            <div
+              key={i}
+              className="rounded-lg border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-4 animate-slide-up shadow-[0_0_20px_-5px_rgba(245,158,11,0.4)]"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                </div>
+                <span className="text-sm font-bold text-amber-300 uppercase tracking-wide">
+                  Conflict Detected
+                </span>
+                <span className="ml-auto text-[10px] text-amber-500/70">
+                  {new Date(event.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </span>
+              </div>
+
+              <p className="text-xs text-amber-100/80 mt-2">{event.message}</p>
+
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex-1 rounded-md bg-purple-500/10 border border-purple-500/30 px-3 py-2">
+                  <div className="text-[10px] text-purple-300/80 uppercase font-semibold">
+                    Technical
+                  </div>
+                  <div className="text-lg font-bold text-purple-300">
+                    {typeof event.techScore === "number" ? event.techScore.toFixed(1) : "—"}
+                  </div>
+                </div>
+                <span className="text-amber-400 font-bold text-sm">vs</span>
+                <div className="flex-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
+                  <div className="text-[10px] text-emerald-300/80 uppercase font-semibold">
+                    Culture
+                  </div>
+                  <div className="text-lg font-bold text-emerald-300">
+                    {typeof event.cultureScore === "number" ? event.cultureScore.toFixed(1) : "—"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        return (
         <div
           key={i}
           className={`flex items-start gap-3 p-3 rounded-lg border animate-slide-up ${
@@ -144,7 +193,8 @@ export default function ActivityFeed({ events, isRunning }: Props) {
             </div>
           </div>
         </div>
-      ))}
+        )
+      })}
 
       {isRunning && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-[#1a2235] border border-[#1e293b]">

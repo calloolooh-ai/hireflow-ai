@@ -227,7 +227,7 @@ export default function CandidateCard({
                     : "bg-[#1e293b] text-slate-400 hover:text-slate-200"
                 }`}
               >
-                {e.agentType.replace("_", " ")}
+                {e.agentType.replace(/_/g, " ")}
               </button>
             ))}
           </div>

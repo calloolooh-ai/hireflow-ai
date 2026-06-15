@@ -1,6 +1,15 @@
 "use client"
 
-import { Cpu, CheckCircle2, Clock, ArrowRight } from "lucide-react"
+import {
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  FileText,
+  Code2,
+  Heart,
+  DollarSign,
+  Trophy,
+} from "lucide-react"
 import type { AgentType } from "@/lib/types"
 
 const AGENTS: Array<{
@@ -9,6 +18,7 @@ const AGENTS: Array<{
   color: string
   bg: string
   border: string
+  icon: React.ElementType
 }> = [
   {
     type: "resume_analyst",
@@ -16,6 +26,7 @@ const AGENTS: Array<{
     color: "text-blue-400",
     bg: "bg-blue-500/10",
     border: "border-blue-500/30",
+    icon: FileText,
   },
   {
     type: "technical_evaluator",
@@ -23,6 +34,7 @@ const AGENTS: Array<{
     color: "text-purple-400",
     bg: "bg-purple-500/10",
     border: "border-purple-500/30",
+    icon: Code2,
   },
   {
     type: "culture_evaluator",
@@ -30,6 +42,7 @@ const AGENTS: Array<{
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/30",
+    icon: Heart,
   },
   {
     type: "compensation_agent",
@@ -37,6 +50,7 @@ const AGENTS: Array<{
     color: "text-amber-400",
     bg: "bg-amber-500/10",
     border: "border-amber-500/30",
+    icon: DollarSign,
   },
   {
     type: "ranking_agent",
@@ -44,6 +58,7 @@ const AGENTS: Array<{
     color: "text-orange-400",
     bg: "bg-orange-500/10",
     border: "border-orange-500/30",
+    icon: Trophy,
   },
 ]
 
@@ -68,6 +83,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
       {AGENTS.map((agent, i) => {
         const isDone = completedAgents.includes(agent.type)
         const isActive = activeAgent === agent.type
+        const AgentIcon = agent.icon
 
         return (
           <div key={agent.type} className="flex items-center gap-1.5 shrink-0">
@@ -83,7 +99,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
               {isDone ? (
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               ) : isActive ? (
-                <Cpu className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+                <AgentIcon className="w-3.5 h-3.5 shrink-0 animate-pulse" />
               ) : (
                 <Clock className="w-3.5 h-3.5 shrink-0" />
               )}

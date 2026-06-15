@@ -5,7 +5,21 @@ import { users } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { randomUUID } from "crypto"
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") ?? "unknown"
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (entry && now < entry.resetAt) {
+    if (entry.count >= 5) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    }
+    entry.count++
+  } else {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
+  }
+
   try {
     await ensureInit()
     const { name, email, password } = await request.json()

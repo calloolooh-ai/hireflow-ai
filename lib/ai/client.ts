@@ -35,12 +35,18 @@ export async function callAI(
     max_tokens: options?.maxTokens ?? 1500,
   })
 
-  return response.choices[0]?.message?.content || ""
+  const content = response.choices[0]?.message?.content
+  if (!content) throw new Error("AI returned empty response")
+  return content
 }
 
 export function extractJSON<T>(text: string): T {
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ||
     text.match(/\{[\s\S]*\}/)
   const jsonStr = jsonMatch?.[1] || jsonMatch?.[0] || text
-  return JSON.parse(jsonStr.trim())
+  try {
+    return JSON.parse(jsonStr.trim())
+  } catch {
+    throw new Error(`Failed to parse AI response as JSON: ${jsonStr.slice(0, 200)}`)
+  }
 }

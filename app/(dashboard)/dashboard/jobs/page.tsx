@@ -9,6 +9,7 @@ import {
   Users,
   ChevronRight,
   Archive,
+  ArchiveRestore,
   MapPin,
   Building2,
   Loader2,
@@ -30,6 +31,7 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [tab, setTab] = useState<"active" | "archived">("active")
 
   useEffect(() => {
     fetch("/api/jobs")
@@ -41,10 +43,21 @@ export default function JobsPage() {
       .catch((err) => { console.error("jobs fetch error:", err); setLoading(false) })
   }, [])
 
+  const unarchiveJob = async (id: string) => {
+    await fetch(`/api/jobs/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "active" }),
+    })
+    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: "active" } : j)))
+    setTab("active")
+  }
+
   const filtered = jobs.filter(
     (j) =>
-      j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.department.toLowerCase().includes(search.toLowerCase())
+      j.status === tab &&
+      (j.title.toLowerCase().includes(search.toLowerCase()) ||
+        j.department.toLowerCase().includes(search.toLowerCase()))
   )
 
   const archiveJob = async (id: string) => {
@@ -70,6 +83,20 @@ export default function JobsPage() {
     <div>
       <Navbar title="Jobs" subtitle="Manage open positions" />
       <div className="p-6 space-y-5">
+        <div className="flex items-center gap-1 p-1 bg-[#111827] border border-[#1e293b] rounded-lg w-fit">
+          {(["active", "archived"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                tab === t ? "bg-[#1e293b] text-white" : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
@@ -200,13 +227,22 @@ export default function JobsPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {job.status === "active" && (
+                        {job.status === "active" ? (
                           <button
                             onClick={() => archiveJob(job.id)}
                             className="p-1.5 rounded-md text-slate-600 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100"
                             title="Archive"
                           >
                             <Archive className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => unarchiveJob(job.id)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-md transition-colors"
+                            title="Unarchive"
+                          >
+                            <ArchiveRestore className="w-3.5 h-3.5" />
+                            Unarchive
                           </button>
                         )}
                         <Link

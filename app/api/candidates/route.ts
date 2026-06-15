@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db, ensureInit } from "@/lib/db"
-import { candidates } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { candidates, jobs } from "@/lib/db/schema"
+import { eq, desc, and } from "drizzle-orm"
 import { randomUUID } from "crypto"
 
 export async function GET(request: Request) {
@@ -14,6 +14,11 @@ export async function GET(request: Request) {
   if (!jobId) return NextResponse.json({ error: "jobId required" }, { status: 400 })
 
   await ensureInit()
+  const jobRows = await db.select({ userId: jobs.userId }).from(jobs).where(eq(jobs.id, jobId)).limit(1)
+  if (!jobRows[0] || jobRows[0].userId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   const list = await db
     .select()
     .from(candidates)
@@ -32,8 +37,15 @@ export async function POST(request: Request) {
   if (!name || !email || !jobId) {
     return NextResponse.json({ error: "name, email, jobId required" }, { status: 400 })
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 })
+  }
 
   await ensureInit()
+  const jobOwner = await db.select({ userId: jobs.userId }).from(jobs).where(eq(jobs.id, jobId)).limit(1)
+  if (!jobOwner[0] || jobOwner[0].userId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
   const candidate = {
     id: randomUUID(),
     jobId,

@@ -146,6 +146,7 @@ export interface EvalEvent {
     | "band_read"
     | "band_post"
     | "agent_complete"
+    | "debate_start"
     | "complete"
     | "error"
   agent?: AgentType
@@ -154,5 +155,7 @@ export interface EvalEvent {
   score?: number
   decision?: string
   data?: unknown
+  techScore?: number
+  cultureScore?: number
   timestamp: string
 }

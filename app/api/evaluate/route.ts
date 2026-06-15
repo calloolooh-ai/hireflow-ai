@@ -1,4 +1,7 @@
 import { auth } from "@/auth"
+import { db, ensureInit } from "@/lib/db"
+import { candidates, jobs } from "@/lib/db/schema"
+import { eq, and } from "drizzle-orm"
 import { runEvaluation } from "@/lib/agents/orchestrator"
 import type { EvalEvent } from "@/lib/types"
 
@@ -15,6 +18,15 @@ export async function POST(request: Request) {
   if (!candidateId || !jobId) {
     return new Response("candidateId and jobId required", { status: 400 })
   }
+
+  await ensureInit()
+  const owned = await db
+    .select({ id: candidates.id })
+    .from(candidates)
+    .innerJoin(jobs, and(eq(jobs.id, candidates.jobId), eq(jobs.userId, session.user.id)))
+    .where(and(eq(candidates.id, candidateId), eq(candidates.jobId, jobId)))
+    .limit(1)
+  if (!owned[0]) return new Response("Forbidden", { status: 403 })
 
   const encoder = new TextEncoder()
 

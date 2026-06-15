@@ -19,6 +19,7 @@ import {
   CheckCircle,
   TrendingUp,
   XCircle,
+  ExternalLink,
 } from "lucide-react"
 
 type Tab = "overview" | "candidates" | "band" | "audit"
@@ -76,12 +77,13 @@ const TAB_CONFIG = [
 export default function ResultsPage() {
   const params = useParams<{ id: string }>()
   const id = params.id
-  const [tab, setTab] = useState<Tab>("overview")
+  const [tab, setTab] = useState<Tab>("band")
   const [data, setData] = useState<ResultsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null)
   const [bandThread, setBandThread] = useState<string | null>(null)
+  const [approveError, setApproveError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/jobs/${id}/results`)
@@ -97,14 +99,23 @@ export default function ResultsPage() {
     candidateId: string,
     action: "approve" | "reject" | "review"
   ) => {
-    await fetch(`/api/decisions`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ candidateId, action }),
-    })
-    // Refresh
-    const res = await fetch(`/api/jobs/${id}/results`)
-    setData(await res.json())
+    try {
+      setApproveError(null)
+      const patchRes = await fetch(`/api/decisions`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, action }),
+      })
+      if (!patchRes.ok) {
+        setApproveError("Failed to save decision. Please try again.")
+        return
+      }
+      const res = await fetch(`/api/jobs/${id}/results`)
+      if (res.ok) setData(await res.json())
+    } catch (err) {
+      console.error("handleApprove error:", err)
+      setApproveError("Something went wrong. Please try again.")
+    }
   }
 
   if (loading) {
@@ -256,7 +267,11 @@ export default function ResultsPage() {
                 {candidates.length === 0 ? (
                   <p className="text-sm text-slate-500">No candidates evaluated yet.</p>
                 ) : (
-                  candidates.map((c) => (
+                  <>
+                  {approveError && (
+                    <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{approveError}</p>
+                  )}
+                  {candidates.map((c) => (
                     <CandidateCard
                       key={c.id}
                       id={c.id}
@@ -267,7 +282,8 @@ export default function ResultsPage() {
                       decision={c.decision}
                       onApprove={handleApprove}
                     />
-                  ))
+                  ))}
+                  </>
                 )}
               </div>
             )}
@@ -275,8 +291,29 @@ export default function ResultsPage() {
             {/* Band Activity tab */}
             {tab === "band" && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Band Collaboration Log</h3>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-semibold text-white">Band Collaboration Log</h3>
+                    {job.bandRoomId && !job.bandRoomId.startsWith("band-room-") ? (
+                      <a
+                        href="https://app.band.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                      >
+                        View in Band
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span
+                        title="Available in live Band mode"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1e293b] border border-[#1e293b] text-slate-600 cursor-not-allowed"
+                      >
+                        View in Band
+                        <ExternalLink className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs text-slate-500">
                     {bandMessages.length} messages across {
                       new Set(bandMessages.map((m) => m.threadId)).size

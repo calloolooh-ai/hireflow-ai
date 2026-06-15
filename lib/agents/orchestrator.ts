@@ -14,7 +14,7 @@ import {
   decisions,
   auditLogs,
 } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import * as band from "@/lib/band"
 import { runResumeAnalyst } from "./resume-analyst"
 import { runTechnicalEvaluator } from "./technical-evaluator"
@@ -57,6 +57,16 @@ export async function runEvaluation(
     onEvent({ type: "error", message: "Candidate or job not found", timestamp: now() })
     return
   }
+
+  if (candidate.status === "evaluating") {
+    onEvent({ type: "error", message: "Evaluation already in progress for this candidate", timestamp: now() })
+    return
+  }
+
+  // Clear existing evaluations so re-runs don't accumulate duplicate rows
+  await db.delete(evaluations).where(
+    and(eq(evaluations.candidateId, candidateId), eq(evaluations.jobId, jobId))
+  )
 
   onEvent({
     type: "start",
@@ -205,6 +215,48 @@ export async function runEvaluation(
         data: output,
         timestamp: now(),
       })
+
+      // ── Live Debate Mode ───────────────────────────────────────────────
+      // After the culture evaluator finishes (and before the ranking agent),
+      // surface a conflict if technical and culture scores diverge sharply.
+      if (step.type === "culture_evaluator") {
+        const techOutput = agentOutputs["technical_evaluator"] as
+          | { score?: number }
+          | undefined
+        const cultureOutput = agentOutputs["culture_evaluator"] as
+          | { score?: number }
+          | undefined
+        const techScore = techOutput?.score
+        const cultureScore = cultureOutput?.score
+
+        if (
+          typeof techScore === "number" &&
+          typeof cultureScore === "number" &&
+          Math.abs(techScore - cultureScore) >= 2.0
+        ) {
+          const conflictMessage = `⚡ CONFLICT DETECTED: Technical score (${techScore.toFixed(
+            1
+          )}) vs Culture score (${cultureScore.toFixed(
+            1
+          )}). Ranking Agent reviewing conflict...`
+
+          onEvent({
+            type: "debate_start",
+            message: conflictMessage,
+            techScore,
+            cultureScore,
+            timestamp: now(),
+          })
+
+          await band.postMessage(
+            bandRoomId,
+            bandThreadId,
+            "ranking_agent",
+            conflictMessage,
+            { techScore, cultureScore, event: "debate_start" }
+          )
+        }
+      }
     } catch (err) {
       onEvent({
         type: "error",
@@ -225,24 +277,20 @@ export async function runEvaluation(
   } | null
 
   if (rankingOutput) {
-    const existing = await db
-      .select()
-      .from(decisions)
-      .where(eq(decisions.candidateId, candidateId))
-      .limit(1)
-
-    if (!existing[0]) {
-      await db.insert(decisions).values({
-        id: randomUUID(),
-        candidateId,
-        jobId,
-        decision: rankingOutput.decision,
-        reasoning: rankingOutput.reasoning,
-        compositeScore: rankingOutput.compositeScore,
-        confidence: rankingOutput.confidence,
-        createdAt: new Date(),
-      })
-    }
+    // Upsert decision — replace any prior decision so re-runs reflect fresh output
+    await db.delete(decisions).where(
+      and(eq(decisions.candidateId, candidateId), eq(decisions.jobId, jobId))
+    )
+    await db.insert(decisions).values({
+      id: randomUUID(),
+      candidateId,
+      jobId,
+      decision: rankingOutput.decision,
+      reasoning: rankingOutput.reasoning,
+      compositeScore: rankingOutput.compositeScore,
+      confidence: rankingOutput.confidence,
+      createdAt: new Date(),
+    })
 
     const statusMap: Record<string, string> = {
       HIRE: "complete",
@@ -252,6 +300,12 @@ export async function runEvaluation(
     await db
       .update(candidates)
       .set({ status: statusMap[rankingOutput.decision] || "complete", updatedAt: new Date() })
+      .where(eq(candidates.id, candidateId))
+  } else {
+    // Ranking agent failed — don't leave candidate stuck in "evaluating"
+    await db
+      .update(candidates)
+      .set({ status: "failed", updatedAt: new Date() })
       .where(eq(candidates.id, candidateId))
   }
 

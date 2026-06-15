@@ -74,7 +74,7 @@ function getMockOutput(
       resumeFindings
         ? `${resumeFindings.yearsExperience} years experience`
         : "Experience level considered",
-      "Current tech market conditions Q1 2025",
+      "Current tech market conditions Q1 2026",
     ],
   }
 }
