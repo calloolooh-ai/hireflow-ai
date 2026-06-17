@@ -31,23 +31,23 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 h-14 flex items-center justify-between px-6 bg-[#0c0c0f]/80 backdrop-blur-sm border-b border-[#1f1f28]">
+    <header className="sticky top-0 z-10 h-14 flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm border-b border-zinc-200">
       <div className="pl-8 md:pl-0">
-        <h1 className="text-sm font-semibold text-white">{title}</h1>
+        <h1 className="text-sm font-semibold text-zinc-900">{title}</h1>
         {subtitle && (
-          <p className="text-xs text-zinc-500 font-mono">{subtitle}</p>
+          <p className="text-xs text-zinc-400 font-mono">{subtitle}</p>
         )}
       </div>
 
       <div className="flex items-center gap-3">
         <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search candidates, jobs..."
-            className="w-56 pl-8 pr-3 py-1.5 bg-[#141416] border border-[#1f1f28] rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-orange-500/40 transition-colors"
+            className="w-56 pl-8 pr-3 py-1.5 bg-zinc-100 border border-zinc-200 rounded-lg text-xs text-zinc-700 placeholder-zinc-400 focus:outline-none focus:border-orange-500/40 transition-colors"
           />
         </form>
 
@@ -58,7 +58,7 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
           </span>
         )}
 
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#1f1f28] transition-colors text-zinc-400 hover:text-zinc-200">
+        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-800">
           <Bell className="w-4 h-4" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
         </button>
@@ -67,7 +67,7 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
           <div className="w-7 h-7 rounded-full bg-orange-600 flex items-center justify-center">
             <User className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-xs text-zinc-400 hidden sm:block">
+          <span className="text-xs text-zinc-500 hidden sm:block">
             {session?.user?.name || session?.user?.email || "User"}
           </span>
         </div>

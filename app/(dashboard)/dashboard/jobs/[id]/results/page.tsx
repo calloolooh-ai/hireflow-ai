@@ -126,7 +126,7 @@ export default function ResultsPage() {
       <div>
         <Navbar title="Results" />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
         </div>
       </div>
     )
@@ -191,19 +191,19 @@ export default function ResultsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/jobs"
-            className="text-sm text-zinc-400 hover:text-zinc-200"
+            className="text-sm text-zinc-400 hover:text-zinc-800"
           >
             Jobs
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
           <Link
             href={`/dashboard/jobs/${id}`}
-            className="text-sm text-zinc-400 hover:text-zinc-200"
+            className="text-sm text-zinc-400 hover:text-zinc-800"
           >
             {job.title}
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-          <span className="text-sm text-zinc-300">Results</span>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+          <span className="text-sm text-zinc-700">Results</span>
         </div>
 
         {/* Summary stats */}
@@ -214,21 +214,21 @@ export default function ResultsPage() {
             { label: "Hold", value: holds, icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10" },
             { label: "Reject", value: rejects, icon: XCircle, color: "text-red-400", bg: "bg-red-500/10" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="bg-[#141416] border border-[#1f1f28] rounded-xl px-4 py-3 flex items-center gap-3">
+            <div key={label} className="bg-white border border-zinc-200 rounded-xl px-4 py-3 flex items-center gap-3">
               <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
               <div>
-                <div className="text-xl font-bold text-white">{value}</div>
-                <div className="text-xs text-zinc-500">{label}</div>
+                <div className="text-xl font-bold text-zinc-900">{value}</div>
+                <div className="text-xs text-zinc-400">{label}</div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="bg-[#141416] border border-[#1f1f28] rounded-xl">
-          <div className="flex border-b border-[#1f1f28]">
+        <div className="bg-white border border-zinc-200 rounded-xl">
+          <div className="flex border-b border-zinc-200">
             {TAB_CONFIG.map(({ id: tabId, label, icon: Icon }) => (
               <button
                 key={tabId}
@@ -236,7 +236,7 @@ export default function ResultsPage() {
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   tab === tabId
                     ? "text-orange-400 border-orange-500"
-                    : "text-zinc-500 border-transparent hover:text-zinc-300"
+                    : "text-zinc-400 border-transparent hover:text-zinc-700"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -251,7 +251,7 @@ export default function ResultsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-semibold text-white">Band Collaboration Log</h3>
+                    <h3 className="text-sm font-semibold text-zinc-900">Band Collaboration Log</h3>
                     {(() => {
                       const activeCandidate = bandThread
                         ? candidates.find((c) => c.bandThreadId === bandThread)
@@ -274,7 +274,7 @@ export default function ResultsPage() {
                       return (
                         <span
                           title="Available in live Band mode"
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1f1f28] border border-[#1f1f28] text-zinc-600 cursor-not-allowed"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 border border-zinc-200 text-zinc-400 cursor-not-allowed"
                         >
                           View in Band
                           <ExternalLink className="w-3 h-3" />
@@ -282,7 +282,7 @@ export default function ResultsPage() {
                       )
                     })()}
                   </div>
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-400">
                     {bandMessages.length} messages across {
                       new Set(bandMessages.map((m) => m.threadId)).size
                     } thread(s)
@@ -296,8 +296,8 @@ export default function ResultsPage() {
                       onClick={() => setBandThread(null)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         !bandThread
-                          ? "bg-orange-600 text-white"
-                          : "bg-[#1f1f28] text-zinc-400 hover:text-zinc-200"
+                          ? "bg-orange-600 text-zinc-900"
+                          : "bg-zinc-100 text-zinc-400 hover:text-zinc-800"
                       }`}
                     >
                       All threads
@@ -310,8 +310,8 @@ export default function ResultsPage() {
                           onClick={() => setBandThread(c.bandThreadId!)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             bandThread === c.bandThreadId
-                              ? "bg-orange-600 text-white"
-                              : "bg-[#1f1f28] text-zinc-400 hover:text-zinc-200"
+                              ? "bg-orange-600 text-zinc-900"
+                              : "bg-zinc-100 text-zinc-400 hover:text-zinc-800"
                           }`}
                         >
                           {c.name}
@@ -333,10 +333,10 @@ export default function ResultsPage() {
                 />
 
                 {/* Collapsible audit log */}
-                <div className="pt-4 border-t border-[#1f1f28]">
+                <div className="pt-4 border-t border-zinc-200">
                   <button
                     onClick={() => setAuditOpen(!auditOpen)}
-                    className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors w-full"
+                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-700 transition-colors w-full"
                   >
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${auditOpen ? "rotate-180" : ""}`} />
                     Full Audit Log · {auditLogs.length} events
@@ -355,7 +355,7 @@ export default function ResultsPage() {
               <div className="space-y-5">
                 {/* Score matrix at top */}
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-3">Score Matrix</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-3">Score Matrix</h3>
                   <CandidateMatrix
                     candidates={matrixRows}
                     jobId={id}
@@ -367,9 +367,9 @@ export default function ResultsPage() {
 
                 {/* Candidate cards — expanded by default */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-white">Candidate Evaluations</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900">Candidate Evaluations</h3>
                   {candidates.length === 0 ? (
-                    <p className="text-sm text-zinc-500">No candidates evaluated yet.</p>
+                    <p className="text-sm text-zinc-400">No candidates evaluated yet.</p>
                   ) : (
                     <>
                     {approveError && (

@@ -75,7 +75,7 @@ export default function ActivityFeed({ events, isRunning }: Props) {
   return (
     <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
       {events.length === 0 && !isRunning && (
-        <div className="text-center py-8 text-sm text-zinc-500">
+        <div className="text-center py-8 text-sm text-zinc-400">
           Click &quot;Run Evaluation&quot; to start the multi-agent pipeline
         </div>
       )}
@@ -85,7 +85,7 @@ export default function ActivityFeed({ events, isRunning }: Props) {
           return (
             <div
               key={i}
-              className="rounded-lg border-2 border-amber-500/40 bg-gradient-to-r from-orange-500/10 to-amber-500/10 p-4 animate-slide-up shadow-[0_0_20px_-5px_rgba(249,115,22,0.3)]"
+              className="rounded-lg border-2 border-amber-500/40 bg-orange-500/10 p-4 animate-slide-up shadow-[0_0_20px_-5px_rgba(249,115,22,0.3)]"
             >
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40">
@@ -140,7 +140,7 @@ export default function ActivityFeed({ events, isRunning }: Props) {
               ? "bg-orange-500/5 border-orange-500/20"
               : event.type === "agent_complete"
               ? "bg-emerald-500/5 border-emerald-500/20"
-              : "bg-[#1a1a22] border-[#1f1f28]"
+              : "bg-white border-zinc-200"
           }`}
         >
           <div className="mt-0.5 shrink-0">
@@ -168,11 +168,11 @@ export default function ActivityFeed({ events, isRunning }: Props) {
               )}
             </div>
 
-            <p className="text-xs text-zinc-300 mt-1">{event.message}</p>
+            <p className="text-xs text-zinc-700 mt-1">{event.message}</p>
 
             <div className="flex items-center gap-3 mt-1">
               {typeof event.score === "number" && (
-                <span className="text-[10px] text-zinc-500">
+                <span className="text-[10px] text-zinc-400">
                   Score:{" "}
                   <span className={`font-semibold ${
                     event.score >= 8 ? "text-emerald-400" :
@@ -183,7 +183,7 @@ export default function ActivityFeed({ events, isRunning }: Props) {
                 </span>
               )}
               {event.decision && <DecisionBadge decision={event.decision} />}
-              <span className="text-[10px] text-zinc-600 ml-auto font-mono">
+              <span className="text-[10px] text-zinc-400 ml-auto font-mono">
                 {new Date(event.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -197,7 +197,7 @@ export default function ActivityFeed({ events, isRunning }: Props) {
       })}
 
       {isRunning && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-[#1a1a22] border border-[#1f1f28]">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-white border border-zinc-200">
           <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-400" />
           <span className="text-xs text-zinc-400">Agents collaborating via Band...</span>
         </div>

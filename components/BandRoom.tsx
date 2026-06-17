@@ -94,7 +94,7 @@ function Chips({ items }: { items: unknown }) {
       {items.map((it, i) => (
         <span
           key={i}
-          className="px-1.5 py-0.5 rounded bg-[#1f1f28] border border-[#2a2a36] text-[10px] text-zinc-400"
+          className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-500"
         >
           {String(it)}
         </span>
@@ -108,7 +108,7 @@ function BulletList({ items }: { items: unknown }) {
   return (
     <ul className="space-y-0.5">
       {items.map((it, i) => (
-        <li key={i} className="text-[11px] text-zinc-300 pl-2">
+        <li key={i} className="text-[11px] text-zinc-700 pl-2">
           • {String(it)}
         </li>
       ))}
@@ -120,8 +120,8 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === null || value === undefined || value === "") return null
   return (
     <div>
-      <span className="text-[10px] uppercase tracking-wider text-zinc-600">{label}</span>
-      <div className="text-zinc-300 mt-0.5">{value}</div>
+      <span className="text-[10px] uppercase tracking-wider text-zinc-400">{label}</span>
+      <div className="text-zinc-700 mt-0.5">{value}</div>
     </div>
   )
 }
@@ -202,7 +202,7 @@ function EvidencePanel({ agentType, output }: { agentType: string; output: Recor
     }
     default:
       return (
-        <pre className="text-[10px] text-zinc-400 font-mono whitespace-pre-wrap break-words">
+        <pre className="text-[10px] text-zinc-500 font-mono whitespace-pre-wrap break-words">
           {JSON.stringify(output, null, 2)}
         </pre>
       )
@@ -223,7 +223,7 @@ export default function BandRoom({ messages, roomId, threadTitle, bandMode, jobI
   return (
     <div className="space-y-3">
       {/* Room header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-[#0c0c0f] rounded-lg border border-[#1f1f28]">
+      <div className="flex items-center gap-2 px-4 py-3 bg-zinc-50 rounded-lg border border-zinc-200">
         <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
         <div className="flex-1 min-w-0">
           <div className="text-xs font-semibold text-orange-400 font-mono">

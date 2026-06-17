@@ -58,25 +58,25 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         className={`
           fixed md:static inset-y-0 left-0 z-30
           w-60 shrink-0 h-screen flex flex-col
-          bg-[#141416] border-r border-[#1f1f28]
+          bg-white border-r border-zinc-200
           transition-transform duration-200
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
         {/* Logo */}
-        <div className="px-4 py-5 border-b border-[#1f1f28]">
+        <div className="px-4 py-5 border-b border-zinc-200">
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={onClose}>
             <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 orange-glow">
               <Cpu className="w-4 h-4 text-white" />
             </div>
-            <div className="font-bold text-white text-sm tracking-tight">HireFlow AI</div>
+            <div className="font-bold text-zinc-900 text-sm tracking-tight">HireFlow AI</div>
           </Link>
         </div>
 
         {/* Band status badge */}
-        <div className="px-4 py-3 border-b border-[#1f1f28]">
+        <div className="px-4 py-3 border-b border-zinc-200">
           {bandLive === null ? (
-            <div className="h-7 bg-[#1f1f28] rounded-md animate-pulse" />
+            <div className="h-7 bg-zinc-100 rounded-md animate-pulse" />
           ) : bandLive ? (
             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-orange-500/10 border border-orange-500/20">
               <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
@@ -85,7 +85,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           ) : (
             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-zinc-500/10 border border-zinc-500/20">
               <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-              <span className="text-xs text-zinc-400 font-medium font-mono">Band Mock Mode</span>
+              <span className="text-xs text-zinc-500 font-medium font-mono">Band Mock Mode</span>
             </div>
           )}
         </div>
@@ -106,7 +106,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
                   isActive
                     ? "bg-orange-600/15 text-orange-400 border border-orange-500/20"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-[#1f1f28]"
+                    : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         {/* Agents section */}
         <div className="px-3 pb-3">
           <div className="px-2 py-1.5 mb-1">
-            <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider font-mono">
+            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">
               Active Agents
             </span>
           </div>
@@ -136,23 +136,23 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             ].map(({ label, color }) => (
               <div key={label} className="flex items-center gap-2 px-2 py-1.5">
                 <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
-                <span className="text-xs text-zinc-600 font-mono">{label}</span>
+                <span className="text-xs text-zinc-400 font-mono">{label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* User + Sign out */}
-        <div className="p-3 border-t border-[#1f1f28] space-y-1">
+        <div className="p-3 border-t border-zinc-200 space-y-1">
           <div className="flex items-center gap-2.5 px-3 py-2">
             <div className="w-7 h-7 rounded-full bg-orange-600/20 border border-orange-500/30 flex items-center justify-center shrink-0">
               <span className="text-[10px] font-bold text-orange-300">{initials}</span>
             </div>
-            <span className="text-xs text-zinc-400 truncate">{userName}</span>
+            <span className="text-xs text-zinc-500 truncate">{userName}</span>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign out</span>

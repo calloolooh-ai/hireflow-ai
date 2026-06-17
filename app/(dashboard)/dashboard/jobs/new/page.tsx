@@ -87,7 +87,7 @@ export default function NewJobPage() {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Senior Frontend Engineer"
                 required
-                className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 text-sm transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 text-sm transition-colors"
               />
             </div>
 
@@ -99,7 +99,7 @@ export default function NewJobPage() {
                 <select
                   value={form.department}
                   onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
-                  className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-orange-500 text-sm transition-colors"
                 >
                   {DEPARTMENTS.map((d) => (
                     <option key={d} value={d}>{d}</option>
@@ -114,7 +114,7 @@ export default function NewJobPage() {
                 <select
                   value={form.level}
                   onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
-                  className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm transition-colors capitalize"
+                  className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-orange-500 text-sm transition-colors capitalize"
                 >
                   {LEVELS.map((l) => (
                     <option key={l} value={l} className="capitalize">{l}</option>
@@ -133,7 +133,7 @@ export default function NewJobPage() {
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
                 placeholder="e.g. San Francisco, CA / Remote"
                 required
-                className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 text-sm transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 text-sm transition-colors"
               />
             </div>
 
@@ -147,9 +147,9 @@ export default function NewJobPage() {
                 placeholder="Describe the role, responsibilities, required skills, and what you're looking for in an ideal candidate..."
                 required
                 rows={8}
-                className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 text-sm transition-colors resize-none"
+                className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 text-sm transition-colors resize-none"
               />
-              <p className="mt-1 text-xs text-zinc-600">
+              <p className="mt-1 text-xs text-zinc-400">
                 Include required skills, tech stack, and experience expectations for best agent analysis
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function NewJobPage() {
             <div className="flex items-center justify-end gap-3 pt-2">
               <Link
                 href="/dashboard/jobs"
-                className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="px-4 py-2 text-sm text-zinc-500 hover:text-zinc-800 transition-colors"
               >
                 Cancel
               </Link>

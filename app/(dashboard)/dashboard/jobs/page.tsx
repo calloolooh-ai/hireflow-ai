@@ -150,16 +150,16 @@ export default function JobsPage() {
                   <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Position
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:table-cell">
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider hidden md:table-cell">
                     Level
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden lg:table-cell">
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider hidden lg:table-cell">
                     Location
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Candidates
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:table-cell">
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider hidden sm:table-cell">
                     Status
                   </th>
                   <th className="px-5 py-3 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -219,7 +219,7 @@ export default function JobsPage() {
                         className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium ${
                           job.status === "active"
                             ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                            : "text-zinc-500 bg-zinc-500/10 border-zinc-500/20"
+                            : "text-zinc-400 bg-zinc-500/10 border-zinc-500/20"
                         }`}
                       >
                         {job.status}
@@ -230,7 +230,7 @@ export default function JobsPage() {
                         {job.status === "active" ? (
                           <button
                             onClick={() => archiveJob(job.id)}
-                            className="p-1.5 rounded-md text-zinc-600 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100"
                             title="Archive"
                           >
                             <Archive className="w-3.5 h-3.5" />

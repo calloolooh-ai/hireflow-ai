@@ -460,25 +460,25 @@ export default function JobDetailPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
                     <label className="block text-xs text-zinc-500 mb-1">Title *</label>
-                    <input type="text" value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} required className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
+                    <input type="text" value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} required className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="block text-xs text-zinc-500 mb-1">Department</label>
-                    <input type="text" value={editForm.department} onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))} className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
+                    <input type="text" value={editForm.department} onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))} className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="block text-xs text-zinc-500 mb-1">Level</label>
-                    <select value={editForm.level} onChange={(e) => setEditForm((f) => ({ ...f, level: e.target.value }))} className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-orange-500">
+                    <select value={editForm.level} onChange={(e) => setEditForm((f) => ({ ...f, level: e.target.value }))} className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-orange-500">
                       {["junior","mid","senior","staff","principal","director"].map((l) => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs text-zinc-500 mb-1">Location</label>
-                    <input type="text" value={editForm.location} onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))} className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
+                    <input type="text" value={editForm.location} onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))} className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500" />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs text-zinc-500 mb-1">Description</label>
-                    <textarea value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} rows={4} className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500 resize-none" />
+                    <textarea value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} rows={4} className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500 resize-none" />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
@@ -510,7 +510,7 @@ export default function JobDetailPage() {
               <div className="p-6 space-y-4">
                 {csvFile ? (
                   <div className="space-y-4">
-                    <div className="p-4 rounded-lg bg-[#0c0c0f] border border-orange-500/30 flex items-center gap-3">
+                    <div className="p-4 rounded-lg bg-zinc-50 border border-orange-500/30 flex items-center gap-3">
                       <Upload className="w-4 h-4 text-orange-400 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-zinc-900 truncate">{csvFile.name}</p>
@@ -542,7 +542,7 @@ export default function JobDetailPage() {
                   </div>
                 ) : (
                   <>
-                    <label className="flex items-center gap-3 p-3 rounded-lg bg-[#0c0c0f] border border-dashed border-[#2a2a36] hover:border-[#475569] cursor-pointer transition-colors">
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-zinc-50 border border-dashed border-zinc-300 hover:border-zinc-400 cursor-pointer transition-colors">
                       <Upload className="w-4 h-4 text-zinc-500" />
                       <div className="flex-1">
                         <p className="text-xs font-medium text-zinc-500">Import from CSV</p>
@@ -578,7 +578,7 @@ export default function JobDetailPage() {
                             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                             required
                             placeholder="Jane Smith"
-                            className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
                           />
                         </div>
                         <div>
@@ -589,7 +589,7 @@ export default function JobDetailPage() {
                             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                             required
                             placeholder="jane@example.com"
-                            className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
                           />
                         </div>
                       </div>
@@ -600,7 +600,7 @@ export default function JobDetailPage() {
                           value={form.linkedinUrl}
                           onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
                           placeholder="https://linkedin.com/in/..."
-                          className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
+                          className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500"
                         />
                       </div>
                       <div>
@@ -610,7 +610,7 @@ export default function JobDetailPage() {
                           onChange={(e) => setForm((f) => ({ ...f, resumeText: e.target.value }))}
                           rows={4}
                           placeholder="Paste resume content here..."
-                          className="w-full px-3 py-2 bg-[#0c0c0f] border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500 resize-none"
+                          className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs placeholder-zinc-400 focus:outline-none focus:border-orange-500 resize-none"
                         />
                       </div>
                       <div className="flex justify-end gap-2 pt-1">
@@ -689,7 +689,7 @@ export default function JobDetailPage() {
                 const scores = candidateScores[candidate.id]
 
                 return (
-                  <div key={candidate.id} className="group hover:bg-[#1a1a22] transition-colors">
+                  <div key={candidate.id} className="group hover:bg-zinc-50 transition-colors">
                     {/* Candidate row */}
                     <div className="px-5 py-4 flex flex-wrap items-center gap-3">
                       {/* Name + email */}
@@ -749,7 +749,7 @@ export default function JobDetailPage() {
                         {showResults && (
                           <Link
                             href={`/dashboard/jobs/${id}/results`}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 border border-[#2a2a36] rounded-md transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-md transition-colors"
                           >
                             View Results
                             <ChevronRight className="w-3 h-3" />
