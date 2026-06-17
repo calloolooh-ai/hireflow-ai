@@ -253,32 +253,23 @@ export default function ResultsPage() {
                   <div className="flex items-center gap-3">
                     <h3 className="text-sm font-semibold text-zinc-900">Band Collaboration Log</h3>
                     {(() => {
+                      if (bandMode !== "live") return null
                       const activeCandidate = bandThread
                         ? candidates.find((c) => c.bandThreadId === bandThread)
                         : candidates[0]
                       const threadId = activeCandidate?.bandThreadId
-                      const isRealThread = threadId && !threadId.startsWith("thread-")
-                      if (bandMode === "live" && threadId) {
-                        return (
-                          <a
-                            href={isRealThread ? `https://app.band.ai/chats/${threadId}` : "https://app.band.ai"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-colors"
-                          >
-                            View in Band
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )
-                      }
+                      if (!threadId) return null
+                      const isRealThread = !threadId.startsWith("thread-")
                       return (
-                        <span
-                          title="Available in live Band mode"
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 border border-zinc-200 text-zinc-400 cursor-not-allowed"
+                        <a
+                          href={isRealThread ? `https://app.band.ai/chats/${threadId}` : "https://app.band.ai"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-colors"
                         >
                           View in Band
                           <ExternalLink className="w-3 h-3" />
-                        </span>
+                        </a>
                       )
                     })()}
                   </div>

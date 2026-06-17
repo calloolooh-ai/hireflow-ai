@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Bell, User } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { Search } from "lucide-react"
 
 interface NavbarProps {
   title: string
@@ -11,7 +10,6 @@ interface NavbarProps {
 }
 
 export default function Navbar({ title, subtitle }: NavbarProps) {
-  const { data: session } = useSession()
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [isDemoMode, setIsDemoMode] = useState(false)
@@ -58,19 +56,6 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
           </span>
         )}
 
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-800">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
-        </button>
-
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-orange-600 flex items-center justify-center">
-            <User className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-xs text-zinc-500 hidden sm:block">
-            {session?.user?.name || session?.user?.email || "User"}
-          </span>
-        </div>
       </div>
     </header>
   )

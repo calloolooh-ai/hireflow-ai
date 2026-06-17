@@ -119,29 +119,6 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           })}
         </nav>
 
-        {/* Agents section */}
-        <div className="px-3 pb-3">
-          <div className="px-2 py-1.5 mb-1">
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">
-              Active Agents
-            </span>
-          </div>
-          <div className="space-y-1">
-            {[
-              { label: "Resume Analyst", color: "bg-orange-400" },
-              { label: "Technical Eval", color: "bg-cyan-400" },
-              { label: "Culture Eval", color: "bg-emerald-400" },
-              { label: "Compensation", color: "bg-amber-400" },
-              { label: "Ranking Agent", color: "bg-orange-500" },
-            ].map(({ label, color }) => (
-              <div key={label} className="flex items-center gap-2 px-2 py-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
-                <span className="text-xs text-zinc-400 font-mono">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* User + Sign out */}
         <div className="p-3 border-t border-zinc-200 space-y-1">
           <div className="flex items-center gap-2.5 px-3 py-2">

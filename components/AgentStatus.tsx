@@ -79,7 +79,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
     <div className="space-y-2">
     {completedAgents.length > 0 && (
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-1 bg-[#1f1f28] rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-zinc-200 rounded-full overflow-hidden">
           <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
         </div>
         <span className="text-[10px] text-zinc-500 shrink-0">{progress}%</span>
@@ -99,7 +99,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
                   ? `${agent.bg} ${agent.border} ${agent.color}`
                   : isActive
                   ? `${agent.bg} ${agent.border} ${agent.color} agent-active`
-                  : "bg-[#1a1a22] border-[#1f1f28] text-zinc-600"
+                  : "bg-zinc-100 border-zinc-200 text-zinc-400"
               }`}
             >
               {isDone ? (
