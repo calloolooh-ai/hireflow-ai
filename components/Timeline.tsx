@@ -29,8 +29,8 @@ const ACTION_LABELS: Record<string, string> = {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  resume_analyst_complete: "bg-blue-500 text-white",
-  technical_evaluator_complete: "bg-purple-500 text-white",
+  resume_analyst_complete: "bg-orange-500 text-white",
+  technical_evaluator_complete: "bg-cyan-500 text-white",
   culture_evaluator_complete: "bg-emerald-500 text-white",
   compensation_agent_complete: "bg-amber-500 text-white",
   ranking_agent_complete: "bg-orange-500 text-white",
@@ -42,7 +42,7 @@ const ACTION_COLORS: Record<string, string> = {
 export default function Timeline({ events }: Props) {
   if (events.length === 0) {
     return (
-      <div className="text-center py-10 text-sm text-slate-500">
+      <div className="text-center py-10 text-sm text-zinc-500">
         No audit events yet. Run evaluations to populate the timeline.
       </div>
     )
@@ -51,13 +51,13 @@ export default function Timeline({ events }: Props) {
   return (
     <div className="relative">
       {/* Vertical line */}
-      <div className="absolute left-5 top-0 bottom-0 w-px bg-[#1e293b]" />
+      <div className="absolute left-5 top-0 bottom-0 w-px bg-[#1f1f28]" />
 
       <div className="space-y-4">
         {events.map((event, i) => {
           const isAgent = event.actorType === "agent"
           const label = ACTION_LABELS[event.action] || event.action.replace(/_/g, " ")
-          const dotColor = ACTION_COLORS[event.action] || (isAgent ? "bg-blue-500 text-white" : "bg-emerald-500 text-white")
+          const dotColor = ACTION_COLORS[event.action] || (isAgent ? "bg-orange-500 text-white" : "bg-emerald-500 text-white")
           const time = new Date(event.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -78,7 +78,7 @@ export default function Timeline({ events }: Props) {
             <div key={event.id} className="relative flex items-start gap-4 pl-12">
               {/* Dot */}
               <div
-                className={`absolute left-3 w-4 h-4 rounded-full flex items-center justify-center ${dotColor} ring-2 ring-[#0f172a] z-10`}
+                className={`absolute left-3 w-4 h-4 rounded-full flex items-center justify-center ${dotColor} ring-2 ring-[#0c0c0f] z-10`}
               >
                 {isAgent ? (
                   <Cpu className="w-2 h-2" />
@@ -91,13 +91,13 @@ export default function Timeline({ events }: Props) {
               <div className="flex-1 min-w-0 pb-1">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-sm font-medium text-white">{label}</span>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-600 shrink-0">
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-600 shrink-0">
                     <Clock className="w-3 h-3" />
                     {date} {time}
                   </div>
                 </div>
 
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
                   <span>{isAgent ? "AI Agent" : "Human"}</span>
                   {event.actorId && (
                     <>
@@ -114,7 +114,7 @@ export default function Timeline({ events }: Props) {
                 {parsedData && typeof parsedData.score === "number" && (
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <CheckCircle className="w-3 h-3 text-emerald-500" />
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-zinc-400">
                       Score:{" "}
                       <span className={`font-semibold ${
                         (parsedData.score as number) >= 8 ? "text-emerald-400" :

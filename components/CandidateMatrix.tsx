@@ -33,7 +33,7 @@ const DECISION_STYLES = {
 }
 
 function ScoreBar({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-slate-600 text-xs">—</span>
+  if (score === null) return <span className="text-zinc-600 text-xs">—</span>
   const pct = (score / 10) * 100
   const color =
     score >= 8 ? "bg-emerald-500" : score >= 6.5 ? "bg-amber-500" : "bg-red-500"
@@ -42,7 +42,7 @@ function ScoreBar({ score }: { score: number | null }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 bg-[#1e293b] rounded-full overflow-hidden">
+      <div className="w-16 h-1.5 bg-[#1f1f28] rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${color}`}
           style={{ width: `${pct}%` }}
@@ -77,11 +77,11 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
 
   const SortIcon = ({ k }: { k: SortKey }) => {
     if (sortKey !== k)
-      return <ChevronUp className="w-3 h-3 text-slate-700 opacity-0 group-hover:opacity-100" />
+      return <ChevronUp className="w-3 h-3 text-zinc-700 opacity-0 group-hover:opacity-100" />
     return sortDir === "asc" ? (
-      <ChevronUp className="w-3 h-3 text-blue-400" />
+      <ChevronUp className="w-3 h-3 text-orange-400" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-blue-400" />
+      <ChevronDown className="w-3 h-3 text-orange-400" />
     )
   }
 
@@ -103,12 +103,12 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-[#1e293b]">
+          <tr className="border-b border-[#1f1f28]">
             {COLS.map(({ key, label }) => (
               <th
                 key={key}
                 onClick={() => toggleSort(key)}
-                className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer group hover:text-slate-300 transition-colors select-none"
+                className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider cursor-pointer group hover:text-zinc-300 transition-colors select-none"
               >
                 <div className="flex items-center gap-1">
                   {label}
@@ -116,16 +116,16 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
                 </div>
               </th>
             ))}
-            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1e293b]">
+        <tbody className="divide-y divide-[#1f1f28]">
           {sorted.map((c) => (
             <tr
               key={c.id}
-              className={`hover:bg-[#1a2235] transition-colors ${
+              className={`hover:bg-[#1a1a22] transition-colors ${
                 c.decision === "HIRE" ? "bg-emerald-500/3" :
                 c.decision === "REJECT" ? "bg-red-500/3" : ""
               }`}
@@ -133,7 +133,7 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
               <td className="px-4 py-3.5">
                 <div>
                   <div className="text-sm font-medium text-white">{c.name}</div>
-                  <div className="text-xs text-slate-600">{c.email}</div>
+                  <div className="text-xs text-zinc-600">{c.email}</div>
                 </div>
               </td>
               <td className="px-4 py-3.5">
@@ -142,7 +142,7 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
               <td className="px-4 py-3.5">
                 <ScoreBar score={c.cultureScore} />
               </td>
-              <td className="px-4 py-3.5 text-xs text-slate-400">
+              <td className="px-4 py-3.5 text-xs text-zinc-400">
                 {formatSalary(c.minSalary, c.maxSalary)}
               </td>
               <td className="px-4 py-3.5">
@@ -158,13 +158,13 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
                     {c.decision}
                   </span>
                 ) : (
-                  <span className="text-xs text-slate-600">Pending</span>
+                  <span className="text-xs text-zinc-600">Pending</span>
                 )}
               </td>
               <td className="px-4 py-3.5 text-right">
                 <button
                   onClick={() => onCandidateClick?.(c.id)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-[#1e293b] hover:bg-[#334155] rounded-md transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-zinc-400 hover:text-white bg-[#1f1f28] hover:bg-[#2a2a36] rounded-md transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Detail
@@ -175,7 +175,7 @@ export default function CandidateMatrix({ candidates, onCandidateClick }: Props)
 
           {sorted.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">
+              <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
                 No evaluated candidates yet
               </td>
             </tr>

@@ -126,7 +126,7 @@ export default function ResultsPage() {
       <div>
         <Navbar title="Results" />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
         </div>
       </div>
     )
@@ -191,52 +191,52 @@ export default function ResultsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/jobs"
-            className="text-sm text-slate-400 hover:text-slate-200"
+            className="text-sm text-zinc-400 hover:text-zinc-200"
           >
             Jobs
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
           <Link
             href={`/dashboard/jobs/${id}`}
-            className="text-sm text-slate-400 hover:text-slate-200"
+            className="text-sm text-zinc-400 hover:text-zinc-200"
           >
             {job.title}
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-          <span className="text-sm text-slate-300">Results</span>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+          <span className="text-sm text-zinc-300">Results</span>
         </div>
 
         {/* Summary stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "Evaluated", value: evaluated, icon: BarChart3, color: "text-blue-400", bg: "bg-blue-500/10" },
+            { label: "Evaluated", value: evaluated, icon: BarChart3, color: "text-orange-400", bg: "bg-orange-500/10" },
             { label: "Hire", value: hires, icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-500/10" },
             { label: "Hold", value: holds, icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10" },
             { label: "Reject", value: rejects, icon: XCircle, color: "text-red-400", bg: "bg-red-500/10" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="bg-[#111827] border border-[#1e293b] rounded-xl px-4 py-3 flex items-center gap-3">
+            <div key={label} className="bg-[#141416] border border-[#1f1f28] rounded-xl px-4 py-3 flex items-center gap-3">
               <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
               <div>
                 <div className="text-xl font-bold text-white">{value}</div>
-                <div className="text-xs text-slate-500">{label}</div>
+                <div className="text-xs text-zinc-500">{label}</div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="bg-[#111827] border border-[#1e293b] rounded-xl">
-          <div className="flex border-b border-[#1e293b]">
+        <div className="bg-[#141416] border border-[#1f1f28] rounded-xl">
+          <div className="flex border-b border-[#1f1f28]">
             {TAB_CONFIG.map(({ id: tabId, label, icon: Icon }) => (
               <button
                 key={tabId}
                 onClick={() => setTab(tabId)}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   tab === tabId
-                    ? "text-blue-400 border-blue-500"
-                    : "text-slate-500 border-transparent hover:text-slate-300"
+                    ? "text-orange-400 border-orange-500"
+                    : "text-zinc-500 border-transparent hover:text-zinc-300"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -264,7 +264,7 @@ export default function ResultsPage() {
                             href={isRealThread ? `https://app.band.ai/chats/${threadId}` : "https://app.band.ai"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-colors"
                           >
                             View in Band
                             <ExternalLink className="w-3 h-3" />
@@ -274,7 +274,7 @@ export default function ResultsPage() {
                       return (
                         <span
                           title="Available in live Band mode"
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1e293b] border border-[#1e293b] text-slate-600 cursor-not-allowed"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1f1f28] border border-[#1f1f28] text-zinc-600 cursor-not-allowed"
                         >
                           View in Band
                           <ExternalLink className="w-3 h-3" />
@@ -282,7 +282,7 @@ export default function ResultsPage() {
                       )
                     })()}
                   </div>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-zinc-500">
                     {bandMessages.length} messages across {
                       new Set(bandMessages.map((m) => m.threadId)).size
                     } thread(s)
@@ -296,8 +296,8 @@ export default function ResultsPage() {
                       onClick={() => setBandThread(null)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         !bandThread
-                          ? "bg-blue-600 text-white"
-                          : "bg-[#1e293b] text-slate-400 hover:text-slate-200"
+                          ? "bg-orange-600 text-white"
+                          : "bg-[#1f1f28] text-zinc-400 hover:text-zinc-200"
                       }`}
                     >
                       All threads
@@ -310,8 +310,8 @@ export default function ResultsPage() {
                           onClick={() => setBandThread(c.bandThreadId!)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             bandThread === c.bandThreadId
-                              ? "bg-blue-600 text-white"
-                              : "bg-[#1e293b] text-slate-400 hover:text-slate-200"
+                              ? "bg-orange-600 text-white"
+                              : "bg-[#1f1f28] text-zinc-400 hover:text-zinc-200"
                           }`}
                         >
                           {c.name}
@@ -333,10 +333,10 @@ export default function ResultsPage() {
                 />
 
                 {/* Collapsible audit log */}
-                <div className="pt-4 border-t border-[#1e293b]">
+                <div className="pt-4 border-t border-[#1f1f28]">
                   <button
                     onClick={() => setAuditOpen(!auditOpen)}
-                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors w-full"
+                    className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors w-full"
                   >
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${auditOpen ? "rotate-180" : ""}`} />
                     Full Audit Log · {auditLogs.length} events
@@ -369,7 +369,7 @@ export default function ResultsPage() {
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-white">Candidate Evaluations</h3>
                   {candidates.length === 0 ? (
-                    <p className="text-sm text-slate-500">No candidates evaluated yet.</p>
+                    <p className="text-sm text-zinc-500">No candidates evaluated yet.</p>
                   ) : (
                     <>
                     {approveError && (

@@ -58,34 +58,34 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         className={`
           fixed md:static inset-y-0 left-0 z-30
           w-60 shrink-0 h-screen flex flex-col
-          bg-[#111827] border-r border-[#1e293b]
+          bg-[#141416] border-r border-[#1f1f28]
           transition-transform duration-200
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
         {/* Logo */}
-        <div className="px-4 py-5 border-b border-[#1e293b]">
+        <div className="px-4 py-5 border-b border-[#1f1f28]">
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={onClose}>
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 orange-glow">
               <Cpu className="w-4 h-4 text-white" />
             </div>
-            <div className="font-bold text-white text-sm">HireFlow AI</div>
+            <div className="font-bold text-white text-sm tracking-tight">HireFlow AI</div>
           </Link>
         </div>
 
         {/* Band status badge */}
-        <div className="px-4 py-3 border-b border-[#1e293b]">
+        <div className="px-4 py-3 border-b border-[#1f1f28]">
           {bandLive === null ? (
-            <div className="h-7 bg-[#1e293b] rounded-md animate-pulse" />
+            <div className="h-7 bg-[#1f1f28] rounded-md animate-pulse" />
           ) : bandLive ? (
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-blue-500/10 border border-blue-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-xs text-blue-300 font-medium">Band Connected</span>
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-orange-500/10 border border-orange-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+              <span className="text-xs text-orange-300 font-medium font-mono">Band Connected</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-indigo-500/10 border border-indigo-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              <span className="text-xs text-indigo-300 font-medium">Band Mock Mode</span>
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-zinc-500/10 border border-zinc-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+              <span className="text-xs text-zinc-400 font-medium font-mono">Band Mock Mode</span>
             </div>
           )}
         </div>
@@ -105,14 +105,14 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
                   isActive
-                    ? "bg-blue-600/15 text-blue-400 border border-blue-500/20"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-[#1e293b]"
+                    ? "bg-orange-600/15 text-orange-400 border border-orange-500/20"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-[#1f1f28]"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{label}</span>
                 {isActive && (
-                  <ChevronRight className="w-3 h-3 ml-auto text-blue-400/60" />
+                  <ChevronRight className="w-3 h-3 ml-auto text-orange-400/60" />
                 )}
               </Link>
             )
@@ -122,37 +122,37 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         {/* Agents section */}
         <div className="px-3 pb-3">
           <div className="px-2 py-1.5 mb-1">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider font-mono">
               Active Agents
             </span>
           </div>
           <div className="space-y-1">
             {[
-              { label: "Resume Analyst", color: "bg-blue-400" },
-              { label: "Technical Eval", color: "bg-purple-400" },
+              { label: "Resume Analyst", color: "bg-orange-400" },
+              { label: "Technical Eval", color: "bg-cyan-400" },
               { label: "Culture Eval", color: "bg-emerald-400" },
               { label: "Compensation", color: "bg-amber-400" },
-              { label: "Ranking Agent", color: "bg-orange-400" },
+              { label: "Ranking Agent", color: "bg-orange-500" },
             ].map(({ label, color }) => (
               <div key={label} className="flex items-center gap-2 px-2 py-1.5">
                 <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
-                <span className="text-xs text-slate-500">{label}</span>
+                <span className="text-xs text-zinc-600 font-mono">{label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* User + Sign out */}
-        <div className="p-3 border-t border-[#1e293b] space-y-1">
+        <div className="p-3 border-t border-[#1f1f28] space-y-1">
           <div className="flex items-center gap-2.5 px-3 py-2">
-            <div className="w-7 h-7 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-              <span className="text-[10px] font-bold text-blue-300">{initials}</span>
+            <div className="w-7 h-7 rounded-full bg-orange-600/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+              <span className="text-[10px] font-bold text-orange-300">{initials}</span>
             </div>
-            <span className="text-xs text-slate-400 truncate">{userName}</span>
+            <span className="text-xs text-zinc-400 truncate">{userName}</span>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign out</span>

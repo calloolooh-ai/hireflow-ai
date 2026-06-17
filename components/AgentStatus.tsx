@@ -25,18 +25,18 @@ const AGENTS: Array<{
     type: "resume_analyst",
     label: "Resume Analyst",
     shortLabel: "Resume",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/30",
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/30",
     icon: FileText,
   },
   {
     type: "technical_evaluator",
     label: "Technical Evaluator",
     shortLabel: "Tech",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/30",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/30",
     icon: Code2,
   },
   {
@@ -79,10 +79,10 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
     <div className="space-y-2">
     {completedAgents.length > 0 && (
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-1 bg-[#1e293b] rounded-full overflow-hidden">
-          <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+        <div className="flex-1 h-1 bg-[#1f1f28] rounded-full overflow-hidden">
+          <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
         </div>
-        <span className="text-[10px] text-slate-500 shrink-0">{progress}%</span>
+        <span className="text-[10px] text-zinc-500 shrink-0">{progress}%</span>
       </div>
     )}
     <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -99,7 +99,7 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
                   ? `${agent.bg} ${agent.border} ${agent.color}`
                   : isActive
                   ? `${agent.bg} ${agent.border} ${agent.color} agent-active`
-                  : "bg-[#1a2235] border-[#1e293b] text-slate-600"
+                  : "bg-[#1a1a22] border-[#1f1f28] text-zinc-600"
               }`}
             >
               {isDone ? (
@@ -115,8 +115,8 @@ export default function AgentStatus({ completedAgents, activeAgent }: Props) {
 
             {i < AGENTS.length - 1 && (
               <div className="flex flex-col items-center gap-0.5 shrink-0">
-                <div className="text-[8px] text-indigo-500 font-bold">Band</div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
+                <div className="text-[8px] text-orange-500 font-bold">Band</div>
+                <ArrowRight className="w-3.5 h-3.5 text-zinc-600" />
               </div>
             )}
           </div>

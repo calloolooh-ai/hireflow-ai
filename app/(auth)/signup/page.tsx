@@ -34,7 +34,6 @@ export default function SignupPage() {
         return
       }
 
-      // Auto sign in after registration
       await signIn("credentials", { email, password, redirect: false })
       router.push("/dashboard")
       router.refresh()
@@ -45,9 +44,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-8">
+    <div className="bg-[#141416] rounded-xl border border-[#1f1f28] p-8">
       <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
-      <p className="text-slate-400 text-sm mb-6">
+      <p className="text-zinc-400 text-sm mb-6">
         Start building your hiring intelligence platform
       </p>
 
@@ -59,7 +58,7 @@ export default function SignupPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
             Full name
           </label>
           <input
@@ -68,12 +67,12 @@ export default function SignupPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Alex Chen"
             required
-            className="w-full px-3 py-2.5 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
+            className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
             Email
           </label>
           <input
@@ -82,12 +81,12 @@ export default function SignupPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
             required
-            className="w-full px-3 py-2.5 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
+            className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
             Password
           </label>
           <input
@@ -97,14 +96,14 @@ export default function SignupPage() {
             placeholder="At least 8 characters"
             required
             minLength={8}
-            className="w-full px-3 py-2.5 bg-[#0f172a] border border-[#1e293b] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
+            className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm"
         >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -115,9 +114,9 @@ export default function SignupPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+        <Link href="/login" className="text-orange-400 hover:text-orange-300 font-medium">
           Sign in
         </Link>
       </p>

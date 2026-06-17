@@ -1,21 +1,11 @@
 import type { Metadata } from "next"
-import { Playfair_Display, Spectral, JetBrains_Mono } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { SessionProvider } from "next-auth/react"
 
-const playfair = Playfair_Display({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-playfair",
-  weight: ["400", "700", "800", "900"],
-  style: ["normal", "italic"],
-  display: "swap",
-})
-
-const spectral = Spectral({
-  subsets: ["latin"],
-  variable: "--font-spectral",
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  variable: "--font-inter",
   display: "swap",
 })
 
@@ -38,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`dark ${playfair.variable} ${spectral.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`dark ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased">
         <SessionProvider>{children}</SessionProvider>
       </body>

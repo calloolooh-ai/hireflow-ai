@@ -31,43 +31,43 @@ export default function Navbar({ title, subtitle }: NavbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 h-14 flex items-center justify-between px-6 bg-[#0f172a]/80 backdrop-blur-sm border-b border-[#1e293b]">
+    <header className="sticky top-0 z-10 h-14 flex items-center justify-between px-6 bg-[#0c0c0f]/80 backdrop-blur-sm border-b border-[#1f1f28]">
       <div className="pl-8 md:pl-0">
         <h1 className="text-sm font-semibold text-white">{title}</h1>
         {subtitle && (
-          <p className="text-xs text-slate-500">{subtitle}</p>
+          <p className="text-xs text-zinc-500 font-mono">{subtitle}</p>
         )}
       </div>
 
       <div className="flex items-center gap-3">
         <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search candidates, jobs..."
-            className="w-56 pl-8 pr-3 py-1.5 bg-[#111827] border border-[#1e293b] rounded-lg text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+            className="w-56 pl-8 pr-3 py-1.5 bg-[#141416] border border-[#1f1f28] rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-orange-500/40 transition-colors"
           />
         </form>
 
         {isDemoMode && (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 border border-amber-500/20 text-amber-400">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            DEMO MODE
+            DEMO
           </span>
         )}
 
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#1e293b] transition-colors text-slate-400 hover:text-slate-200">
+        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#1f1f28] transition-colors text-zinc-400 hover:text-zinc-200">
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
         </button>
 
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-full bg-orange-600 flex items-center justify-center">
             <User className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-xs text-slate-400 hidden sm:block">
+          <span className="text-xs text-zinc-400 hidden sm:block">
             {session?.user?.name || session?.user?.email || "User"}
           </span>
         </div>
