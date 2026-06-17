@@ -1,287 +1,440 @@
+"use client"
+
+import { useEffect, useRef, useState, useCallback } from "react"
 import Link from "next/link"
 import {
-  FileText,
-  Code2,
-  Heart,
-  DollarSign,
-  Trophy,
-  ArrowRight,
-  Users,
-  ShieldCheck,
-  ScrollText,
-  Play,
-  Zap,
-  Clock,
-  Cpu,
+  FileText, Code2, Heart, DollarSign, Trophy, ArrowRight,
+  Users, ShieldCheck, ScrollText, Play, Zap, Clock, Cpu,
+  ChevronDown, CheckCircle, GitBranch, BarChart3, MessageSquare,
 } from "lucide-react"
 
+/* ── Data ── */
 const PIPELINE = [
-  { label: "Resume Analyst", icon: FileText, dot: "bg-orange-400", color: "text-orange-400" },
-  { label: "Technical Evaluator", icon: Code2, dot: "bg-cyan-400", color: "text-cyan-400" },
-  { label: "Culture Evaluator", icon: Heart, dot: "bg-emerald-400", color: "text-emerald-400" },
-  { label: "Compensation Analyst", icon: DollarSign, dot: "bg-amber-400", color: "text-amber-400" },
-  { label: "Ranking Agent", icon: Trophy, dot: "bg-orange-500", color: "text-orange-500" },
+  { label: "Resume Analyst", short: "RA", icon: FileText, dot: "bg-orange-400", color: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10", glow: "rgba(249,115,22,0.3)", desc: "Extracts skills, experience & patterns" },
+  { label: "Technical Evaluator", short: "TE", icon: Code2, dot: "bg-cyan-400", color: "text-cyan-400", border: "border-cyan-500/30", bg: "bg-cyan-500/10", glow: "rgba(6,182,212,0.3)", desc: "Scores technical alignment to role" },
+  { label: "Culture Evaluator", short: "CE", icon: Heart, dot: "bg-emerald-400", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10", glow: "rgba(16,185,129,0.3)", desc: "Assesses team fit & communication" },
+  { label: "Compensation Analyst", short: "CA", icon: DollarSign, dot: "bg-amber-400", color: "text-amber-400", border: "border-amber-500/30", bg: "bg-amber-500/10", glow: "rgba(245,158,11,0.3)", desc: "Markets salary & estimates fit" },
+  { label: "Ranking Agent", short: "RK", icon: Trophy, dot: "bg-orange-500", color: "text-orange-500", border: "border-orange-500/40", bg: "bg-orange-500/15", glow: "rgba(249,115,22,0.4)", desc: "Resolves conflicts & finalises verdict" },
+]
+
+const DEBATE_MESSAGES = [
+  { agent: "Resume Analyst", color: "text-orange-400", bg: "bg-orange-500/8", border: "border-orange-500/20", icon: FileText, time: "2:14 PM", text: "Analysed Diego Ramirez. 5 yrs full-stack, React/TypeScript, GCP. Concern flagged: candidate explicitly describes preference for solo work.", highlight: "Strong technical foundation, culture fit unclear.", hColor: "text-orange-400" },
+  { agent: "Technical Evaluator", color: "text-cyan-400", bg: "bg-cyan-500/8", border: "border-cyan-500/20", icon: Code2, time: "2:15 PM", text: "Read Resume Analyst's findings (1 message). React, TypeScript, GCP all confirmed strong. System design gaps offset by delivery track record.", highlight: "Technical recommendation: HIRE · score 8.4", hColor: "text-cyan-400" },
+  { agent: "Culture Evaluator", color: "text-emerald-400", bg: "bg-emerald-500/8", border: "border-emerald-500/20", icon: Heart, time: "2:16 PM", text: "Read both prior messages (2 read). Assessment diverges — candidate self-reports as 'not a team player' with documented collaboration failures.", highlight: "Culture score: 5.1 · Recommendation: HOLD", hColor: "text-emerald-400" },
+  { agent: "Ranking Agent", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/25", icon: Trophy, time: "2:17 PM", text: "Reviewed all 4 Band messages. CONFLICT: Technical 8.4 vs Culture 5.1 — 3.3-point gap. Technical strength real, culture concerns documented.", highlight: "Decision: HOLD · Composite score: 6.8", hColor: "text-amber-400" },
+]
+
+const STATS = [
+  { value: "5", suffix: "", label: "Collaborating agents", icon: Users, color: "text-orange-400" },
+  { value: "87", suffix: "%", label: "Faster hiring decisions", icon: BarChart3, color: "text-cyan-400" },
+  { value: "100", suffix: "%", label: "Explainable every time", icon: CheckCircle, color: "text-emerald-400" },
 ]
 
 const FEATURES = [
-  {
-    icon: Users,
-    title: "Multi-Agent Collaboration",
-    desc: "Five specialized agents coordinate inside Band rooms, reading each other's work and debating disagreements in real time.",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/15",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Human-in-the-Loop Approvals",
-    desc: "Every recommendation is reviewed by your hiring team. Approve, reject, or request more analysis with one click.",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/15",
-  },
-  {
-    icon: ScrollText,
-    title: "Full Audit Trail",
-    desc: "Every agent message, score, and decision is timestamped, explainable, and searchable. No black-box recommendations.",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/15",
-  },
+  { icon: GitBranch, title: "Agent-to-Agent Handoffs", desc: "Each agent reads the Band thread, builds on prior findings, and hands context to the next — no repeated analysis, no lost signal.", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20" },
+  { icon: ShieldCheck, title: "Human-in-the-Loop", desc: "Every recommendation waits for your team. Approve, reject, or request deeper analysis — you stay in control of every hire.", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+  { icon: ScrollText, title: "Full Audit Trail", desc: "Every message, score, and decision is timestamped and searchable in Band. Complete explainability, zero black-box risk.", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
 ]
 
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen bg-[#0c0c0f] text-zinc-100 tech-grid">
-      {/* Ambient glow top */}
-      <div className="fixed inset-x-0 top-0 h-[400px] pointer-events-none z-0">
-        <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(ellipse_at_50%_-10%,rgba(249,115,22,0.10),transparent_65%)]" />
-      </div>
+/* ── Hook: scroll reveal ── */
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>(".reveal, .reveal-left, .reveal-right")
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible") }),
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    )
+    els.forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
+  }, [])
+}
 
-      {/* Top nav */}
-      <nav className="relative z-10 border-b border-[#1f1f28] bg-[#0c0c0f]/80 backdrop-blur-sm">
+/* ── Hook: animated counter ── */
+function useCounter(target: number, duration = 1800, trigger: boolean) {
+  const [val, setVal] = useState(0)
+  useEffect(() => {
+    if (!trigger) return
+    let start: number | null = null
+    const step = (ts: number) => {
+      if (!start) start = ts
+      const p = Math.min((ts - start) / duration, 1)
+      setVal(Math.floor(p * target))
+      if (p < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [target, duration, trigger])
+  return val
+}
+
+/* ── Stat card with counter ── */
+function StatCard({ stat, index }: { stat: typeof STATS[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [triggered, setTriggered] = useState(false)
+  const numericTarget = parseInt(stat.value)
+  const count = useCounter(numericTarget, 1600, triggered)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setTriggered(true); obs.disconnect() } }, { threshold: 0.5 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const Icon = stat.icon
+  return (
+    <div
+      ref={ref}
+      className={`reveal d${index + 1} card-lift bg-[#141416] border border-[#1f1f28] rounded-2xl p-8 text-center`}
+    >
+      <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${stat.color.replace("text-", "bg-").replace("400", "500/10")} mb-4`}>
+        <Icon className={`w-6 h-6 ${stat.color}`} />
+      </div>
+      <div className={`text-5xl font-bold font-mono mb-1 ${stat.color}`}>
+        {triggered ? count : 0}{stat.suffix}
+      </div>
+      <div className="text-sm text-zinc-500">{stat.label}</div>
+    </div>
+  )
+}
+
+/* ── Typewriter ── */
+function Typewriter({ words }: { words: string[] }) {
+  const [idx, setIdx] = useState(0)
+  const [text, setText] = useState("")
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    const word = words[idx]
+    const timeout = setTimeout(() => {
+      if (!deleting) {
+        setText(word.slice(0, text.length + 1))
+        if (text.length + 1 === word.length) setTimeout(() => setDeleting(true), 1800)
+      } else {
+        setText(word.slice(0, text.length - 1))
+        if (text.length - 1 === 0) { setDeleting(false); setIdx((i) => (i + 1) % words.length) }
+      }
+    }, deleting ? 40 : 80)
+    return () => clearTimeout(timeout)
+  }, [text, deleting, idx, words])
+
+  return (
+    <span className="shimmer-text">
+      {text}<span className="typing-cursor" />
+    </span>
+  )
+}
+
+/* ── Pipeline flow dots ── */
+function FlowDot({ delay }: { delay: number }) {
+  return (
+    <span
+      className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-orange-400/70 -translate-y-1/2"
+      style={{ animation: `data-flow 2.4s ${delay}s ease-in-out infinite` }}
+    />
+  )
+}
+
+/* ── Main page ── */
+export default function LandingPage() {
+  useReveal()
+
+  const mouseRef = useRef<HTMLDivElement>(null)
+  const [mousePos, setMousePos] = useState({ x: 50, y: 30 })
+
+  const handleMouse = useCallback((e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setMousePos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 })
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-[#0c0c0f] text-zinc-100 overflow-x-hidden">
+
+      {/* ── Nav ── */}
+      <nav className="fixed top-0 inset-x-0 z-50 border-b border-[#1f1f28]/80 bg-[#0c0c0f]/75 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center orange-glow">
+            <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center animate-glow-pulse">
               <Cpu className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-bold tracking-tight text-white">HireFlow AI</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 text-sm font-semibold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors"
-            >
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors">Sign In</Link>
+            <Link href="/signup" className="px-4 py-2 text-sm font-semibold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-all hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
               Get Started
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-medium text-orange-400 mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-          Powered by Band · Band of Agents Hackathon 2026
-        </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-white">
-          5 AI Agents.{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
-            One Hiring Decision.
-          </span>
-          <br className="hidden sm:block" /> Full Transparency.
-        </h1>
-        <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-zinc-400 leading-relaxed">
-          HireFlow AI transforms hiring into a transparent multi-agent collaboration
-          — powered by Band.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/login?demo=1"
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold text-white transition-colors"
-          >
-            <Play className="w-4 h-4" />
-            Try Demo — No signup needed
-          </Link>
-          <Link
-            href="/signup"
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-sm font-semibold text-white transition-colors orange-glow"
-          >
-            Get Started Free
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
+      {/* ── Hero ── */}
+      <section
+        className="relative min-h-screen flex flex-col items-center justify-center pt-16 overflow-hidden tech-grid"
+        onMouseMove={handleMouse}
+        ref={mouseRef}
+      >
+        {/* Dynamic mouse glow */}
+        <div
+          className="absolute inset-0 pointer-events-none transition-all duration-700"
+          style={{ background: `radial-gradient(600px circle at ${mousePos.x}% ${mousePos.y}%, rgba(249,115,22,0.07), transparent 60%)` }}
+        />
+        {/* Top ambient */}
+        <div className="absolute inset-x-0 top-0 h-[60vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,rgba(249,115,22,0.12),transparent_60%)]" />
+        {/* Scan line */}
+        <div className="scan-overlay absolute inset-0" />
 
-      {/* Pipeline visualization */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pb-16">
-        <div className="corner-accent bg-[#141416] border border-[#1f1f28] rounded-2xl p-6 sm:p-8 overflow-hidden">
-          <div className="text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-6">
-            ── The Collaboration Pipeline ──
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            {PIPELINE.map((agent, i) => {
-              const Icon = agent.icon
-              return (
-                <div key={agent.label} className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0c0c0f] border border-[#1f1f28] hover:border-orange-500/25 transition-colors">
-                    <span className={`w-1.5 h-1.5 rounded-full ${agent.dot}`} />
-                    <Icon className={`w-4 h-4 ${agent.color}`} />
-                    <span className="text-xs font-medium text-zinc-300 whitespace-nowrap font-mono">
-                      {agent.label}
-                    </span>
-                  </div>
-                  {i < PIPELINE.length - 1 && (
-                    <ArrowRight className="w-4 h-4 text-orange-500/40 shrink-0" />
-                  )}
+        {/* Floating agent orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          {PIPELINE.slice(0, 4).map((agent, i) => {
+            const angles = [30, 100, 200, 290]
+            const radii = [180, 220, 190, 230]
+            const angle = (angles[i] * Math.PI) / 180
+            const r = radii[i]
+            const x = 50 + (r / 8) * Math.cos(angle)
+            const y = 50 + (r / 14) * Math.sin(angle)
+            const delays = [0, 1.2, 2.4, 3.6]
+            return (
+              <div
+                key={agent.label}
+                className={`absolute animate-float ${i % 2 === 1 ? "animate-float-slow" : ""}`}
+                style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${delays[i]}s`, transform: "translate(-50%,-50%)" }}
+              >
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${agent.border} ${agent.bg} backdrop-blur-sm opacity-60`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${agent.dot}`} />
+                  <agent.icon className={`w-3.5 h-3.5 ${agent.color}`} />
+                  <span className={`text-[10px] font-mono font-semibold ${agent.color} hidden sm:block`}>{agent.short}</span>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )
+          })}
         </div>
-      </section>
 
-      {/* Debate mockup */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pb-20">
-        <div className="text-center mb-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-2">
-            ── Live Band Collaboration Thread ──
+        {/* Particles */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className="particle bg-orange-400/20"
+            style={{
+              left: `${10 + i * 11}%`,
+              bottom: `${15 + (i % 3) * 20}%`,
+              width: `${3 + (i % 3)}px`,
+              height: `${3 + (i % 3)}px`,
+              animationDuration: `${5 + i * 1.5}s`,
+              animationDelay: `${i * 0.8}s`,
+            }}
+          />
+        ))}
+
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-xs font-medium text-orange-400 mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+            Powered by Band · Hackathon 2026
           </div>
-          <p className="text-sm text-zinc-500">
-            Watch agents debate a candidate in real time
+
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.08] text-white mb-4">
+            5 AI Agents.<br />
+            <Typewriter words={["One Hiring Decision.", "Total Transparency.", "No Black Boxes.", "Real Collaboration."]} />
+          </h1>
+
+          <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-zinc-400 leading-relaxed">
+            Specialized agents collaborate inside Band — reading each other&apos;s work, debating disagreements, and producing explainable hiring recommendations your team can trust.
           </p>
-        </div>
-        <div className="space-y-3 max-w-2xl mx-auto">
-          {/* Resume Analyst */}
-          <div className="rounded-xl border p-4 bg-orange-500/8 border-orange-500/20">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-orange-500/15 border border-orange-500/25 flex items-center justify-center">
-                  <FileText className="w-3 h-3 text-orange-400" />
-                </div>
-                <span className="text-xs font-semibold text-orange-400 font-mono">Resume Analyst</span>
-                <span className="text-[10px] text-zinc-600 px-1.5 py-0.5 bg-[#0c0c0f] rounded border border-[#1f1f28] font-mono">agent</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
-                <Clock className="w-3 h-3" />2:14 PM
-              </div>
-            </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">I have analyzed Diego Ramirez&apos;s resume. Extracting 5 years full-stack experience, strong React/TypeScript skills, GCP proficiency. Notable concern: candidate explicitly describes preference for solo work. <span className="text-orange-400 font-medium">Summary: Strong technical foundation, culture fit unclear.</span></p>
-          </div>
 
-          {/* via Band connector */}
-          <div className="flex flex-col items-center py-0.5">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-[10px] text-orange-400 font-semibold font-mono">
-              <ArrowRight className="w-2.5 h-2.5" />via Band
-            </div>
-          </div>
-
-          {/* Technical Evaluator */}
-          <div className="rounded-xl border p-4 bg-cyan-500/8 border-cyan-500/20">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
-                  <Code2 className="w-3 h-3 text-cyan-400" />
-                </div>
-                <span className="text-xs font-semibold text-cyan-400 font-mono">Technical Evaluator</span>
-                <span className="text-[10px] text-zinc-600 px-1.5 py-0.5 bg-[#0c0c0f] rounded border border-[#1f1f28] font-mono">agent</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
-                <Clock className="w-3 h-3" />2:15 PM
-              </div>
-            </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">I have reviewed Resume Analyst&apos;s findings from this Band thread (1 message read). React, TypeScript, GCP: all confirmed strong. System design gaps noted but compensated by delivery track record. <span className="text-cyan-400 font-medium">My technical recommendation: HIRE with score 8.4.</span></p>
-          </div>
-
-          {/* via Band connector */}
-          <div className="flex flex-col items-center py-0.5">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-[10px] text-orange-400 font-semibold font-mono">
-              <ArrowRight className="w-2.5 h-2.5" />via Band
-            </div>
-          </div>
-
-          {/* Culture Evaluator */}
-          <div className="rounded-xl border p-4 bg-emerald-500/8 border-emerald-500/20">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
-                  <Heart className="w-3 h-3 text-emerald-400" />
-                </div>
-                <span className="text-xs font-semibold text-emerald-400 font-mono">Culture Evaluator</span>
-                <span className="text-[10px] text-zinc-600 px-1.5 py-0.5 bg-[#0c0c0f] rounded border border-[#1f1f28] font-mono">agent</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
-                <Clock className="w-3 h-3" />2:16 PM
-              </div>
-            </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">I&apos;ve read Resume Analyst&apos;s profile and Technical Evaluator&apos;s assessment (score 8.4) from this Band thread (2 messages read). ⚠️ My assessment diverges — candidate self-reports as &apos;not a team player&apos; with documented collaboration failures. <span className="text-emerald-400 font-medium">Culture score: 5.1. Recommendation: HOLD.</span></p>
-          </div>
-
-          {/* Conflict banner */}
-          <div className="rounded-lg bg-gradient-to-r from-orange-500/15 to-amber-500/15 border border-orange-500/30 px-4 py-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400 mb-1.5 font-mono">
-              <Zap className="w-3.5 h-3.5" />
-              CONFLICT DETECTED — Ranking Agent mediating
-            </div>
-            <div className="flex items-center gap-6 text-[11px] font-mono">
-              <span className="text-cyan-400 font-semibold">Technical: 8.4</span>
-              <span className="text-zinc-600">vs</span>
-              <span className="text-emerald-400 font-semibold">Culture: 5.1</span>
-            </div>
-          </div>
-
-          {/* via Band connector */}
-          <div className="flex flex-col items-center py-0.5">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-[10px] text-orange-400 font-semibold font-mono">
-              <ArrowRight className="w-2.5 h-2.5" />via Band
-            </div>
-          </div>
-
-          {/* Ranking Agent */}
-          <div className="rounded-xl border p-4 bg-orange-500/10 border-orange-500/25">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center">
-                  <Trophy className="w-3 h-3 text-orange-500" />
-                </div>
-                <span className="text-xs font-semibold text-orange-400 font-mono">Ranking Agent</span>
-                <span className="text-[10px] text-zinc-600 px-1.5 py-0.5 bg-[#0c0c0f] rounded border border-[#1f1f28] font-mono">agent</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
-                <Clock className="w-3 h-3" />2:17 PM
-              </div>
-            </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">I have reviewed all 4 Band messages from Resume Analyst, Technical Evaluator (score 8.4), Culture Evaluator (score 5.1), and Compensation Agent. <span className="text-amber-400 font-medium">CONFLICT: Technical scored 8.4 but Culture scored 5.1 — a 3.3-point gap requiring mediation.</span> Technical strength is real. Culture concerns are documented. <span className="text-orange-400 font-bold">Decision: HOLD</span> — structured interview focused on collaboration scenarios recommended. Composite score: 6.8.</p>
-          </div>
-
-          <div className="text-center pt-2">
-            <Link href="/login?demo=1" className="inline-flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors font-medium font-mono">
-              See this live in the app <ArrowRight className="w-3.5 h-3.5" />
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/login?demo=1"
+              className="group flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-sm font-semibold text-white transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] active:scale-95"
+            >
+              <Play className="w-4 h-4" />
+              Watch Live Demo
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/signup"
+              className="group flex items-center gap-2 px-6 py-3 rounded-xl bg-[#141416] hover:bg-[#1a1a22] border border-[#1f1f28] hover:border-orange-500/30 text-sm font-semibold text-zinc-300 hover:text-white transition-all"
+            >
+              Get Started Free
             </Link>
           </div>
+
+          {/* Scroll indicator */}
+          <div className="mt-20 flex flex-col items-center gap-2 text-zinc-600 animate-bounce-down">
+            <span className="text-[10px] font-mono uppercase tracking-widest">Scroll to explore</span>
+            <ChevronDown className="w-4 h-4" />
+          </div>
         </div>
       </section>
 
-      {/* Feature cards */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {FEATURES.map((f) => {
+      {/* ── Pipeline ── */}
+      <section className="relative py-32 px-6 max-w-6xl mx-auto">
+        <div className="reveal text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1a1a22] border border-[#1f1f28] text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
+            <MessageSquare className="w-3 h-3" /> The Collaboration Pipeline
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white">Agents that talk to each other</h2>
+          <p className="mt-3 text-zinc-400 max-w-xl mx-auto text-sm leading-relaxed">
+            Every agent reads the Band thread before acting. Context flows forward — nothing is repeated, nothing is lost.
+          </p>
+        </div>
+
+        {/* Pipeline cards */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-0">
+          {PIPELINE.map((agent, i) => {
+            const Icon = agent.icon
+            return (
+              <div key={agent.label} className={`reveal d${i + 1} flex items-center gap-0`}>
+                <div
+                  className="card-lift flex flex-col items-center gap-3 px-5 py-5 rounded-2xl border bg-[#141416] hover:border-opacity-60 transition-all group"
+                  style={{ borderColor: agent.glow.replace("0.3)", "0.35)"), boxShadow: "none" }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 0 28px ${agent.glow}`)}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+                >
+                  <div className={`w-12 h-12 rounded-xl ${agent.bg} border ${agent.border} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <Icon className={`w-6 h-6 ${agent.color}`} />
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-xs font-bold font-mono ${agent.color}`}>{agent.short}</div>
+                    <div className="text-[10px] text-zinc-500 max-w-[90px] leading-tight mt-0.5">{agent.desc}</div>
+                  </div>
+                </div>
+
+                {i < PIPELINE.length - 1 && (
+                  <div className="flex items-center shrink-0">
+                    <div className="relative w-12 sm:w-16 h-px bg-[#1f1f28] data-line mx-1">
+                      <FlowDot delay={i * 0.5} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="reveal mt-8 text-center">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-400 font-mono">
+            <ArrowRight className="w-3 h-3" />
+            All communication flows through Band
+          </span>
+        </div>
+      </section>
+
+      {/* ── Debate theater ── */}
+      <section className="relative py-24 px-6 bg-[#0a0a0d]">
+        <div className="max-w-4xl mx-auto">
+          <div className="reveal text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1a1a22] border border-[#1f1f28] text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
+              <Zap className="w-3 h-3 text-amber-400" /> Live Band Thread
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">Watch agents debate a hire</h2>
+            <p className="mt-3 text-sm text-zinc-400 max-w-lg mx-auto">
+              Conflict resolution, context handoffs, and final verdicts — all visible in Band.
+            </p>
+          </div>
+
+          {/* Thread container */}
+          <div className="gradient-border p-1 rounded-2xl">
+            <div className="bg-[#0f0f12] rounded-xl p-6 space-y-3">
+              {/* Band header */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#1f1f28]">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded bg-orange-600/20 border border-orange-500/30 flex items-center justify-center">
+                    <MessageSquare className="w-3 h-3 text-orange-400" />
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-300 font-mono">band://hiring/diego-ramirez</span>
+                </div>
+                <span className="text-[10px] text-zinc-600 font-mono">4 messages</span>
+              </div>
+
+              {DEBATE_MESSAGES.map((msg, i) => {
+                const Icon = msg.icon
+                return (
+                  <div key={i}>
+                    <div className={`reveal d${i + 1} rounded-xl border p-4 ${msg.bg} ${msg.border}`}>
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${msg.border} ${msg.bg}`}>
+                            <Icon className={`w-3 h-3 ${msg.color}`} />
+                          </div>
+                          <span className={`text-xs font-semibold font-mono ${msg.color}`}>{msg.agent}</span>
+                          <span className="text-[10px] text-zinc-600 px-1.5 py-0.5 bg-[#0c0c0f] rounded border border-[#1f1f28] font-mono">agent</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
+                          <Clock className="w-3 h-3" />{msg.time}
+                        </div>
+                      </div>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        {msg.text}{" "}
+                        <span className={`font-semibold ${msg.hColor}`}>{msg.highlight}</span>
+                      </p>
+                    </div>
+
+                    {i < DEBATE_MESSAGES.length - 1 && i !== 2 && (
+                      <div className="flex flex-col items-center py-1.5">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-[10px] text-orange-400 font-mono">
+                          <ArrowRight className="w-2.5 h-2.5" />via Band
+                        </div>
+                      </div>
+                    )}
+
+                    {i === 2 && (
+                      <div className="reveal rounded-lg bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-orange-500/15 border border-orange-500/35 px-5 py-3.5 my-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-amber-300 mb-2 font-mono">
+                          <Zap className="w-3.5 h-3.5 text-orange-400" />
+                          CONFLICT DETECTED — Ranking Agent mediating
+                        </div>
+                        <div className="flex items-center gap-6 text-xs font-mono">
+                          <span className="text-cyan-400 font-semibold">Technical: <span className="text-cyan-300">8.4</span></span>
+                          <span className="text-zinc-600">vs</span>
+                          <span className="text-emerald-400 font-semibold">Culture: <span className="text-emerald-300">5.1</span></span>
+                          <span className="ml-auto text-zinc-600">Δ 3.3 pts</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+
+              <div className="reveal pt-2 text-center">
+                <Link
+                  href="/login?demo=1"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors font-mono"
+                >
+                  See this live in the app <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats ── */}
+      <section className="relative py-28 px-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {STATS.map((stat, i) => <StatCard key={stat.label} stat={stat} index={i} />)}
+        </div>
+      </section>
+
+      {/* ── Feature cards ── */}
+      <section className="relative py-10 pb-28 px-6 max-w-6xl mx-auto">
+        <div className="reveal text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white">Enterprise-ready from day one</h2>
+          <p className="mt-3 text-sm text-zinc-400 max-w-lg mx-auto">
+            Built for hiring managers who need speed, auditability, and control.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {FEATURES.map((f, i) => {
             const Icon = f.icon
             return (
               <div
                 key={f.title}
-                className={`corner-accent bg-[#141416] border ${f.border} rounded-2xl p-6 hover:border-orange-500/25 transition-colors`}
+                className={`reveal d${i + 1} card-lift corner-accent bg-[#141416] border ${f.border} rounded-2xl p-7`}
               >
-                <div className={`w-10 h-10 rounded-lg ${f.bg} flex items-center justify-center mb-4`}>
+                <div className={`w-11 h-11 rounded-xl ${f.bg} flex items-center justify-center mb-5`}>
                   <Icon className={`w-5 h-5 ${f.color}`} />
                 </div>
-                <h3 className="text-sm font-semibold text-white mb-2">{f.title}</h3>
+                <h3 className="text-sm font-bold text-white mb-2">{f.title}</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed">{f.desc}</p>
               </div>
             )
@@ -289,13 +442,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-[#1f1f28]">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between text-xs text-zinc-600 font-mono">
-          <span>HireFlow AI · Band-native hiring intelligence</span>
-          <Link href="/login" className="hover:text-zinc-400 transition-colors">
-            Sign In →
-          </Link>
+      {/* ── CTA ── */}
+      <section className="relative py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(249,115,22,0.08),transparent_65%)] pointer-events-none" />
+        <div className="absolute inset-0 tech-grid opacity-50 pointer-events-none" />
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <div className="reveal">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-600 animate-glow-pulse mb-8">
+              <Cpu className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+              Start hiring with<br />
+              <span className="shimmer-text">AI that explains itself.</span>
+            </h2>
+            <p className="text-zinc-400 mb-10 text-base max-w-xl mx-auto leading-relaxed">
+              No black boxes. No guesswork. Five agents. One decision. Full transparency through Band.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/login?demo=1"
+                className="group flex items-center gap-2 px-7 py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-sm font-bold text-white transition-all hover:shadow-[0_0_40px_rgba(249,115,22,0.5)] active:scale-95"
+              >
+                <Play className="w-4 h-4" />
+                Try Live Demo
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/signup"
+                className="flex items-center gap-2 px-7 py-3.5 rounded-xl border border-[#1f1f28] hover:border-orange-500/30 bg-[#141416] hover:bg-[#1a1a22] text-sm font-bold text-zinc-300 hover:text-white transition-all"
+              >
+                Create Free Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-[#1f1f28]">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-600 font-mono">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-orange-600/20 border border-orange-500/20 flex items-center justify-center">
+              <Cpu className="w-3 h-3 text-orange-400" />
+            </div>
+            HireFlow AI · Band-native hiring intelligence
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="hover:text-zinc-400 transition-colors">Sign In</Link>
+            <Link href="/signup" className="hover:text-zinc-400 transition-colors">Sign Up</Link>
+          </div>
         </div>
       </footer>
     </div>
