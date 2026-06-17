@@ -204,12 +204,12 @@ export default function DashboardPage() {
 
         {/* Top action bar */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h2 className="text-base font-semibold text-white">Overview</h2>
+          <h2 className="text-base font-semibold text-zinc-900">Overview</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleLoadDemo}
               disabled={seeding || analyticsLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1f1f28] hover:bg-[#2a2a36] text-zinc-200 text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
             >
               {seeding ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -220,7 +220,7 @@ export default function DashboardPage() {
             </button>
             <Link
               href="/dashboard/jobs/new"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-zinc-900 text-sm font-medium rounded-lg transition-colors"
             >
               <Briefcase className="w-3.5 h-3.5" />
               New Job
@@ -234,37 +234,37 @@ export default function DashboardPage() {
             <Link
               key={label}
               href={href}
-              className="block bg-[#141416] border border-[#1f1f28] rounded-xl p-5 hover:border-[#2a2a36] transition-colors group"
+              className="block bg-white border border-zinc-200 rounded-xl p-5 hover:border-zinc-300 transition-colors group"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center`}>
                   <Icon className={`w-4 h-4 ${color}`} />
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-400 transition-colors" />
               </div>
-              <div className="text-2xl font-bold text-white mb-0.5">
+              <div className="text-2xl font-bold text-zinc-900 mb-0.5">
                 {analyticsLoading ? (
-                  <div className="h-7 w-10 bg-[#1f1f28] rounded animate-pulse" />
+                  <div className="h-7 w-10 bg-zinc-100 rounded animate-pulse" />
                 ) : (
                   value
                 )}
               </div>
-              <div className="text-xs text-zinc-500 font-medium">{label}</div>
+              <div className="text-xs text-zinc-400 font-medium">{label}</div>
             </Link>
           ))}
         </div>
 
         {/* Awaiting Your Decision */}
         {!pendingLoading && pending.length > 0 && (
-          <div className="bg-[#141416] border border-[#1f1f28] rounded-xl">
-            <div className="px-5 py-4 border-b border-[#1f1f28] flex items-center gap-2">
+          <div className="bg-white border border-zinc-200 rounded-xl">
+            <div className="px-5 py-4 border-b border-zinc-200 flex items-center gap-2">
               <Gavel className="w-4 h-4 text-amber-400" />
-              <h3 className="text-sm font-semibold text-white">Awaiting Your Decision</h3>
+              <h3 className="text-sm font-semibold text-zinc-900">Awaiting Your Decision</h3>
               <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">
                 {pending.length}
               </span>
             </div>
-            <div className="divide-y divide-[#1e293b]">
+            <div className="divide-y divide-zinc-200">
               {pending.slice(0, 3).map((p) => {
                 const isExpanded = expandedCard === p.candidateId
                 const hasSummary = p.summary && (
@@ -274,11 +274,11 @@ export default function DashboardPage() {
                   p.summary.compositeScore != null
                 )
                 return (
-                  <div key={p.candidateId} className="divide-y divide-[#1e293b]">
+                  <div key={p.candidateId} className="divide-y divide-zinc-200">
                     <div className="px-5 py-4 flex items-center gap-4 flex-wrap">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{p.candidateName}</p>
-                        <p className="text-xs text-zinc-500 truncate">{p.jobTitle}</p>
+                        <p className="text-sm font-medium text-zinc-900 truncate">{p.candidateName}</p>
+                        <p className="text-xs text-zinc-400 truncate">{p.jobTitle}</p>
                       </div>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-bold ${
@@ -290,7 +290,7 @@ export default function DashboardPage() {
                       {hasSummary && (
                         <button
                           onClick={() => setExpandedCard(isExpanded ? null : p.candidateId)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f1f28] hover:bg-[#2a2a36] text-zinc-400 hover:text-zinc-200 transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-400 hover:text-zinc-800 transition-colors"
                         >
                           {isExpanded ? (
                             <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
@@ -303,21 +303,21 @@ export default function DashboardPage() {
                         <button
                           onClick={() => handleApproval(p.candidateId, "approve")}
                           disabled={actioning === p.candidateId}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-60"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-zinc-900 transition-colors disabled:opacity-60"
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleApproval(p.candidateId, "review")}
                           disabled={actioning === p.candidateId}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-60"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-500 text-zinc-900 transition-colors disabled:opacity-60"
                         >
                           Hold
                         </button>
                         <button
                           onClick={() => handleApproval(p.candidateId, "reject")}
                           disabled={actioning === p.candidateId}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-60"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-zinc-900 transition-colors disabled:opacity-60"
                         >
                           Reject
                         </button>
@@ -325,25 +325,25 @@ export default function DashboardPage() {
                     </div>
 
                     {isExpanded && hasSummary && (
-                      <div className="px-5 py-4 bg-[#0c0c0f]/60 space-y-4">
+                      <div className="px-5 py-4 bg-zinc-50/60 space-y-4">
                         {(p.summary.compositeScore != null || p.summary.technicalScore != null || p.summary.cultureScore != null) && (
                           <div className="flex items-center gap-4 flex-wrap">
                             {p.summary.compositeScore != null && (
-                              <div className="flex flex-col items-center bg-[#141416] border border-[#1f1f28] rounded-lg px-4 py-2">
-                                <span className="text-lg font-bold text-white">{p.summary.compositeScore.toFixed(1)}</span>
-                                <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">Composite</span>
+                              <div className="flex flex-col items-center bg-white border border-zinc-200 rounded-lg px-4 py-2">
+                                <span className="text-lg font-bold text-zinc-900">{p.summary.compositeScore.toFixed(1)}</span>
+                                <span className="text-[10px] text-zinc-400 font-medium uppercase tracking-wide">Composite</span>
                               </div>
                             )}
                             {p.summary.technicalScore != null && (
-                              <div className="flex flex-col items-center bg-[#141416] border border-[#1f1f28] rounded-lg px-4 py-2">
+                              <div className="flex flex-col items-center bg-white border border-zinc-200 rounded-lg px-4 py-2">
                                 <span className="text-lg font-bold text-cyan-400">{p.summary.technicalScore.toFixed(1)}</span>
-                                <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">Technical</span>
+                                <span className="text-[10px] text-zinc-400 font-medium uppercase tracking-wide">Technical</span>
                               </div>
                             )}
                             {p.summary.cultureScore != null && (
-                              <div className="flex flex-col items-center bg-[#141416] border border-[#1f1f28] rounded-lg px-4 py-2">
+                              <div className="flex flex-col items-center bg-white border border-zinc-200 rounded-lg px-4 py-2">
                                 <span className="text-lg font-bold text-emerald-400">{p.summary.cultureScore.toFixed(1)}</span>
-                                <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">Culture</span>
+                                <span className="text-[10px] text-zinc-400 font-medium uppercase tracking-wide">Culture</span>
                               </div>
                             )}
                           </div>
@@ -355,7 +355,7 @@ export default function DashboardPage() {
                                 <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1.5">Strengths</p>
                                 <ul className="space-y-1">
                                   {p.summary.strengths.map((s, i) => (
-                                    <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-300">
+                                    <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-700">
                                       <span className="text-emerald-500 mt-0.5 shrink-0">+</span>
                                       <span>{s}</span>
                                     </li>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                                 <p className="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1.5">Weaknesses</p>
                                 <ul className="space-y-1">
                                   {p.summary.weaknesses.map((w, i) => (
-                                    <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-300">
+                                    <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-700">
                                       <span className="text-red-500 mt-0.5 shrink-0">−</span>
                                       <span>{w}</span>
                                     </li>
@@ -394,11 +394,11 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Evaluations */}
-        <div className="bg-[#141416] border border-[#1f1f28] rounded-xl">
-          <div className="px-5 py-4 border-b border-[#1f1f28] flex items-center justify-between">
+        <div className="bg-white border border-zinc-200 rounded-xl">
+          <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Cpu className="w-4 h-4 text-orange-400" />
-              <h3 className="text-sm font-semibold text-white">Recent Evaluations</h3>
+              <h3 className="text-sm font-semibold text-zinc-900">Recent Evaluations</h3>
             </div>
             <Link
               href="/dashboard/jobs"
@@ -408,19 +408,19 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="divide-y divide-[#1e293b]">
+          <div className="divide-y divide-zinc-200">
             {activityLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="px-5 py-3.5 flex items-center gap-3">
-                  <div className="w-6 h-6 bg-[#1f1f28] rounded animate-pulse" />
+                  <div className="w-6 h-6 bg-zinc-100 rounded animate-pulse" />
                   <div className="flex-1 space-y-1">
-                    <div className="h-3 bg-[#1f1f28] rounded w-3/4 animate-pulse" />
-                    <div className="h-2.5 bg-[#1f1f28] rounded w-1/4 animate-pulse" />
+                    <div className="h-3 bg-zinc-100 rounded w-3/4 animate-pulse" />
+                    <div className="h-2.5 bg-zinc-100 rounded w-1/4 animate-pulse" />
                   </div>
                 </div>
               ))
             ) : recentActivity.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-zinc-500">
+              <div className="px-5 py-8 text-center text-sm text-zinc-400">
                 No evaluations yet. Load demo data or create a job and run evaluations.
               </div>
             ) : (
@@ -436,14 +436,14 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-zinc-300 truncate">
+                    <p className="text-xs text-zinc-700 truncate">
                       {formatEvalAction(log)}
                     </p>
-                    <p className="text-[10px] text-zinc-600">
+                    <p className="text-[10px] text-zinc-400">
                       {log.entityType} · {formatTime(log.createdAt)}
                     </p>
                   </div>
-                  <Clock className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                  <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </div>
               ))
             )}

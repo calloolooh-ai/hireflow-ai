@@ -62,9 +62,9 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-[#141416] rounded-xl border border-[#1f1f28] p-8">
-      <h1 className="text-2xl font-bold text-white mb-2">Sign in</h1>
-      <p className="text-zinc-400 text-sm mb-6">
+    <div className="bg-white rounded-xl border border-zinc-200 p-8">
+      <h1 className="text-2xl font-bold text-zinc-900 mb-2">Sign in</h1>
+      <p className="text-zinc-500 text-sm mb-6">
         Welcome back to HireFlow AI
       </p>
 
@@ -83,7 +83,7 @@ function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label className="block text-sm font-medium text-zinc-700 mb-1.5">
             Email
           </label>
           <input
@@ -92,12 +92,12 @@ function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
             required
-            className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
+            className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label className="block text-sm font-medium text-zinc-700 mb-1.5">
             Password
           </label>
           <input
@@ -106,7 +106,7 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            className="w-full px-3 py-2.5 bg-[#0c0c0f] border border-[#1f1f28] rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
+            className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 transition-colors text-sm"
           />
         </div>
 
@@ -128,13 +128,13 @@ function LoginForm() {
         <button
           onClick={handleDemo}
           disabled={loading}
-          className="w-full px-4 py-2.5 bg-[#0c0c0f] hover:bg-[#1f1f28] border border-[#1f1f28] text-zinc-300 font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+          className="w-full px-4 py-2.5 bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-700 font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
         >
           Use Demo Account
         </button>
       </div>
 
-      <p className="mt-6 text-center text-sm text-zinc-500">
+      <p className="mt-6 text-center text-sm text-zinc-400">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-orange-400 hover:text-orange-300 font-medium">
           Sign up
@@ -147,8 +147,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="bg-[#141416] rounded-xl border border-[#1f1f28] p-8 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+      <div className="bg-white rounded-xl border border-zinc-200 p-8 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
       </div>
     }>
       <LoginForm />

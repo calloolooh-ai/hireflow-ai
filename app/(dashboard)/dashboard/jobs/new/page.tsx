@@ -53,20 +53,20 @@ export default function NewJobPage() {
       <div className="p-6 max-w-2xl">
         <Link
           href="/dashboard/jobs"
-          className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-800 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Jobs
         </Link>
 
-        <div className="bg-[#141416] border border-[#1f1f28] rounded-xl">
-          <div className="px-6 py-5 border-b border-[#1f1f28] flex items-center gap-3">
+        <div className="bg-white border border-zinc-200 rounded-xl">
+          <div className="px-6 py-5 border-b border-zinc-200 flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
               <Briefcase className="w-4 h-4 text-orange-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">Create Job Position</h2>
-              <p className="text-xs text-zinc-500">A Band room will be created automatically for agent collaboration</p>
+              <h2 className="text-sm font-semibold text-zinc-900">Create Job Position</h2>
+              <p className="text-xs text-zinc-400">A Band room will be created automatically for agent collaboration</p>
             </div>
           </div>
 
@@ -78,7 +78,7 @@ export default function NewJobPage() {
             )}
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                 Job Title *
               </label>
               <input
@@ -93,7 +93,7 @@ export default function NewJobPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                   Department *
                 </label>
                 <select
@@ -108,7 +108,7 @@ export default function NewJobPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                   Level *
                 </label>
                 <select
@@ -124,7 +124,7 @@ export default function NewJobPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                 Location *
               </label>
               <input
@@ -138,7 +138,7 @@ export default function NewJobPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                 Job Description *
               </label>
               <textarea
